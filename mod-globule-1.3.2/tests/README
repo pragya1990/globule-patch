@@ -1,0 +1,116 @@
+Globule Tests
+=============
+
+[Getting it to work:]
+---------------------
+You have to update the ssl.conf and the httpd.conf in globule/apache/conf
+directory to reflect the directory structure that you are using.
+(e.g. replace /home/berry with /home/wdittmer) These two configuration
+files are used to generate the httpd.conf
+
+Also if you run the master test set, make symbolic links to master/conf
+and master/htdocs in this dir. If you run the slave test set, do the same.
+
+
+[Test that are (should be) done:]
+---------------------
+
+* Setup: one master, no slaves
+  o Client requests a normal doc from Master                        (200)
+  o Client requests a G-doc from Master                             (200)
+  o Client requests G-directory without '/'                         (301)
+    returns request url with '/'
+  o Master handles Slave with wrong password correctly              (401)
+
+* Setup: one master, one slave, RR redirect, Invalidate
+  o Client requests a normal doc from Master                        (200)
+  o Client requests a G-doc from Master, check for redirect         (200|302)
+    (Requires registered slave)
+  o Client requests G-directory without '/' from Master             (301) 
+  o Master handles Slave registration correctly                     (200)
+  o Master handles Slave with wrong password correctly              (401)
+  o Master handles update G-docs correctly (i.e. sends Invalidate)  (200)
+    (Requires registered slave, check Slave handles Invalidate)
+  o Client requests a normal doc from Slave                         (200)
+  o Client requests a G-doc from Slave                              (200)
+  o Client requests a G-directory from Slave without '/'            (301)
+    returns request url with '/'
+  o Client requests a G-directory from Slave with '/'               (301)
+    returns request url with '/index.html'
+
+* Setup: no master, one slave
+  o Client requests normal doc from Slave                           (200)
+  o Client requests G-doc from Slave                                (500)
+
+Document with various (un)escaped characters in their path.
+
+
+
+INTRO
+-----
+There are four test groups:
+
+directives : Test processing of valid and invalid configuration files
+master     : Test master behaviour of Globule, standalone.
+slave      : Test slave behaviour of Globule, standalone.
+combined   : Test master and slave behaviour using multiple servers.
+flood      : Test concurrent access (master and slave individually).
+floodcomb  : Test concurrent access to slave with real master.
+
+Each test group consists of one or more test supersets. E.g. for the
+master there are the "noslave" and "oneslave" test supersets. A test
+superset consists of a number of testsets. Each testset (i.e., a "*.t"
+file) consists of a number of tests that can pass of fail
+individually. These tests are generally not individually visible in
+the output, unless a test fails. If there are no failures, the
+testset will print "ok" indicating all tests succeeded.
+
+(The terminology used may be non-intuitive. I prefer to call each
+"*.t" file a test and each superset (e.g. noslave) a testset, as
+each "*.t" file currently tests one particular aspect of Globule. 
+However, the Perl test framework used has "test" as the smallest
+unit, so I stick with that.)
+
+INSTALLING
+----------
+To run these tests you need to have the Apache testing framework,
+available from
+    http://httpd.apache.org/test/
+
+Good luck getting that installed :-( For the flood tests you also
+need to install the flood program that is part of the framework.
+
+
+RUNNING
+-------
+All test groups can be run at once using
+	make test
+	
+Individual test groups can be run by 
+	make <test group>
+
+You can also run make in each of the subdirectories.
+
+
+OUTPUT
+------
+Each individual testset will print an 
+
+<filename>....ok
+or
+<filename>....FAILED test X.
+
+message. If you add -verbose to the TESTOPTS in shared.mk you will
+get the output of the individual tests in each file/testset. (For
+the directives test group it will not show any individual tests.)
+
+
+FLOODCOMB 
+--------- 
+The floodcomb tests currently load only the slave directly. There are no
+test clients that talk to the master directly. The reason is that the test
+client software (i.e. the flood program) cannot currently handle HTTP
+redirects and will fail. The master's functionality minus redirects is tested
+by the non-combined flood test on the master.
+
+Arno Bakker, 2004-01-08

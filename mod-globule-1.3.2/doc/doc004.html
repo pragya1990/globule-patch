@@ -1,0 +1,1972 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+<TITLE>
+Globule User Manual: 3  
+ Server Configuration
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="doc003.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc005.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+<H2><A NAME="htoc13">3</A>&nbsp;&nbsp;<A NAME="sec:conf"></A>
+ Server Configuration</H2>
+<P>
+Much like Apache needs to be configured on which web-sites it needs to serve,
+Globule as a module to Apache, also needs to be told which parts of the sites
+served by Apache need to be replicated. Likewise instructions on security,
+configuration and special handling need to be selected. Globule adds another
+dimension because it allows tuning of replication and redirection policies and
+it is a co-operative network. This means that one explicitly selects partners
+with which to co-operate and replicate documents to and from.
+</P>
+<P>
+Globule therefore requires configuration, as does Apache. Like other modules
+in Apache, this configuration is embedded in the Apache configuration file
+<CODE>httpd.conf</CODE>. Without configuration Globule/Apache can possibly be
+started, but is dysfunctional.
+</P>
+<P>
+The Apache configuration can be quite complex to get right. This documentation
+does not handle the configuration of Apache itself, nor of any modules which
+can be used inside Apache. Refer to the
+<A HREF="http://httpd.apache.org/docs-2.0/">Apache documentation</A> and
+follow the guidelines in the sample <CODE>httpd.conf</CODE> or <CODE>httpd-std.conf</CODE>
+to get the a working web-site first before integrating Globule. Globule also
+provides a sample <CODE>httpd-globule.conf</CODE> that can be renamed to
+<CODE>httpd.conf</CODE> which can be used to start your configuration from.
+</P>
+<P>
+This section describes how to prepare a configuration in <CODE>httpd.conf</CODE>
+which performs a basic replication of a site to other host. Separate
+subsections handle individual subjects and enhancements like:
+<OL type=1><LI>
+Site replication;
+<LI>DNS based redirection;
+<LI>System Monitoring;
+<LI>Dynamic Content.
+</OL>
+The reference in section&nbsp;<A HREF="doc006.html#sec:reference">5</A> describes the directives on an
+individual basis rather than per subject.
+</P>
+
+<H4><A NAME="sec:conf:gbs"></A>The Globule Broker</H4>
+<P>
+Setting up a configuration file <CODE>httpd.conf</CODE> can be quite a difficult
+process. Order in which directives are specified matters, their semantical
+nesting must be precise, when to add port numbers and many other common tasks.
+Globule adds another dimension to managing the <CODE>httpd.conf</CODE> since the
+configuration of one server which is the origin of exported documents is
+linked to replica servers which import the documents. The locations, shared
+secrets and settings need to match between servers.
+</P>
+<P>
+To aid users in setting up <CODE>httpd.conf</CODE> configuration files for their
+servers and set up relationships between origin sites and friendly replica
+servers, we have created a web-site which:
+<UL><LI>
+brokers between potential replica servers and your origin server;
+<LI>generates a complete and working <CODE>httpd.conf</CODE> configuration file
+ based on all your settings.
+</UL>
+This web-site is the <A HREF="http://www.globeworld.net/">Globule Broker
+Service (GBS)</A>. Globule users are able to register their servers, to select
+on which server(s) their sites should be replicated, how redirection should be
+performed, etc. As an added feature, Globule will provide a set of servers
+ready to replicate its users' sites, as well as a public redirection service.
+The GBS can be found at
+<A HREF="http://www.globeworld.net/">http://www.globeworld.net/</A>. Note however
+that its features are currently quite limited. A redesign of the GBS is on
+its way.
+</P>
+<A NAME="toc8"></A>
+<H3><A NAME="htoc14">3.1</A>&nbsp;&nbsp;<A NAME="sec:conf:basic"></A>
+ Basic Server Configuration</H3>
+<P>
+Globule is provided as a module for Apache. This requires that you have to
+let Apache know that you will be needing the Globule module. Such
+instructions, as well as other configuration directives are written in the
+Apache configuration file <CODE>httpd.conf</CODE>. Where this file is located
+depends on the installation you have chosen. In this file also directives
+will be placed that provide instructions to Globule on how to operate.
+</P>
+<P>
+Apache is a highly configurable and flexible server. This also means that
+even the basic configuration without Globule is quite extensive and many
+details matter. Be aware that small configuration changes can have large
+effects. Small omissions, presence of other directives or order in which
+directives are placed can result in Apache failing to start, misoperation, or
+other unexpected results. Some of these effects are even silent and the
+server either does not start, or seems to work, but in a different fashion
+(for instance, not using replication).
+</P>
+<P>
+Therefore, <EM>take care to follow instructions precisely</EM> and <EM>make
+changes at the proper location</EM>. Look which values you need to change, such
+as adding port-numbers, setting the ServerName, and changing the directory
+names, etcetera. Some values, like directory names appear multiple times in
+configuration files, be sure they are consistent with each other.
+</P>
+<P>
+This section describes how to add the most basic necessary directives to a
+functional Apache configuration file. In subsequent sections is explained how
+to add further functionality on a per-subject basic. This manual cannot give
+an overview on <A HREF="http://httpd.apache.org/docs-2.0/">configuring Apache</A>,
+only on the extension Globule provides. Some knowledge on Apache
+configuration is needed and we advice to work from a template
+<CODE>httpd.conf</CODE> as provided by your installation method.
+</P>
+
+<H4><A NAME="htoc15">3.1.1</A>&nbsp;&nbsp;How to update your configuration</H4>
+<P>
+Configuring Apache and Globule involves making changes to the configuration
+file <TT>httpd.conf</TT>. When making changes to the configuration, these will
+not take effect until your restart Apache. The location of the
+<CODE>httpd.conf</CODE> file and how to restart Apache depends on your installation
+method. Refer back to the chosen installation method on the location of
+<TT>httpd.conf</TT> and the preferred method of starting Apache.
+</P>
+<P>
+In any case, you might also check whether certain errors in the configuration
+using the command <CODE>apachectl configtest</CODE> or <CODE>globulectl configtest</CODE>
+if provided. However not all configuration errors show up during startup.
+When Apache starts, it will run in the background. Any errors at this time
+will be written in the error log as specified in the Apache configuration.
+Always check this error log for problems.
+</P>
+
+<H4><A NAME="htoc16">3.1.2</A>&nbsp;&nbsp;<A NAME="sec:conf:normal"></A>Check your Apache configuration</H4>
+<P>
+The installed <TT>httpd.conf</TT> might already be adapted, however this default
+configuration file is just a standard template and should be checked and/or
+adapted for your system. Refer to the Apache documentation on a full
+explanation. The following settings are at least important for a correct
+Globule or do vary much between systems. These settings should already be
+partially present in the <CODE>httpd.conf</CODE>.
+</P>
+
+<H5>Directive <B>Listen</B></H5>&nbsp;<BR>
+<P>
+The Listen directive instructs Apache to listen to one or more ports. The
+Listen directive must always be specified, even if the default port 80 is
+used. At the time of release of version 1.3.1 of Globule, the usage of
+multiple listen ports, or the use of SSL/HTTPS may not fully functional.<BR>
+Make sure that the port specified here, is in accordance with the
+specification on ServerName, NameVirtualHost and VirtualHost directives as
+GlobuleReplicaIs/For etcetera directives.
+</P>
+<P>
+Example:
+</P>
+<PRE>
+Listen 8333
+</PRE>
+
+<H5>Directives <B>User</B> and <B>Group</B></H5>&nbsp;<BR>
+<P>
+When Apache is instructed to run on from port 80, it requires superuser
+priviledges and thus needs to be started as root. Since this can cause
+security issues, Apache is always instructed to try to change its identity
+after startup to the Unix user and group as specified by the directives
+<B>User</B> and <B>Group</B>. Standard Unix/Linux operation as well as
+the recommended Apache setup is to change to the Unix user <CODE>nobody</CODE> and
+group <CODE>#-1</CODE>. There are however Linux distributions which provide
+separate Unix users and groups such as <CODE>apache</CODE>, <CODE>httpd</CODE>,
+<CODE>www</CODE>, <CODE>web</CODE>, etcetera. If you run off a default distribution you
+might need to use these groups in order for the web-server to access all
+files. The Unix user/group combination <CODE>nobody</CODE> and <CODE>#-1</CODE> are
+always available.
+</P>
+<P>
+Example:
+</P>
+<PRE>
+User nobody
+Group #-1
+</PRE>
+
+<H5>For Windows users</H5>
+<P>
+Windows users, who use DNS redirection (their machine plays the role of the
+redirector need to disable the AcceptEx windows call. This Microsoft
+optimization breaks quite a lot of software, including our and MySQL software.
+Besides, enabling it provides limited performance increase. Since Windows
+serves pages very slow compared to Linux servers, you can safely disable this
+feature always:
+</P>
+<PRE>
+&lt;IfModule mpm_winnt.c&gt;
+  Win32DisableAcceptEx
+  ...
+&lt;/IfModule&gt;
+</PRE>
+<P>
+Locate the existing <TT>IfModule mpm_winnt</TT> section and add the
+Win32DisableAcceptEx directive.
+</P>
+
+<H5>Directive <B>ServerName</B></H5>&nbsp;<BR>
+<P>
+The ServerName directives appears at least once in the <CODE>httpd.conf</CODE> at a
+global level, which means not inside a VirtualHost section or other. Only one
+such a ServerName at the global level should exist, quite early in the
+configuration file. The single argument to the ServerName directive should be
+the hostname of your machine, which will always resolve to the public IP
+address of the machine.
+</P>
+<PRE>
+Listen 80
+...
+ServerName world.cs.vu.nl
+</PRE>
+<P>
+If your server does not use the default HTTP port (as specified as
+<TT>Listen 80</TT> earlier in the <CODE>httpd.conf</CODE>) then the ServerName should
+have a colon appended to it:
+</P>
+<PRE>
+Listen 8333
+... 
+ServerName world.cs.vu.nl:8333
+</PRE>
+<P>
+The usage of an IP number instead of a fully qualified hostname is
+discouraged, as the usage of VirtualHosts is not supported, nor is DNS
+redirection.
+</P>
+
+<H5><B>VirtualHost</B> sections</H5>&nbsp;<BR>
+<P>
+The usage of VirtualHost is documented in the Apache documentation, but due to
+the many mistakes one can make with it, and the effect it has on Globule, some
+remarks on the configuration are below.
+i.e. when URLs with different host names return a different set of
+pages. You must use name-based virtual hosting in most cases, even if
+you only want to host a single site.
+</P>
+<P>
+Unless you have multiple IP addresses on your machine and know what you are
+doing, you want <EM>name</EM> based virtual hosting instead of plain virtual
+hosting. In a name based configuration you should start with the
+specification of a NameVirtualHost directive. Then for each web-site with a
+different hostname to be served, define a VirtualHost directive
+environment. These should at least contain a ServerName directive with the
+web-site name and a DocumentRoot directive which specifies where the documents
+for that web-site should come from. Be sure that the ServerName directives
+within the VirtualHost environment are tagged with the port number in the same
+way as the global ServerName;
+</P>
+<PRE>
+Listen 8333
+...
+ServerName world.cs.vu.nl:8333
+...
+DocumentRoot /var/www/html
+...
+NameVirtualHost *
+
+&lt;VirtualHost *&gt;
+  ServerName world.cs.vu.nl:8333
+  DocumentRoot /var/www/html
+  ...
+&lt;/VirtualHost&gt;
+
+&lt;VirtualHost *&gt;
+  ServerName www.revolutionware.net:8333
+  DocumentRoot /var/www/www.revolutionware.net
+  ...
+&lt;/VirtualHost&gt;
+
+&lt;VirtualHost *&gt;
+  ServerName _default_:8333
+  DocumentRoot /var/www/html
+  ...
+&lt;/VirtualHost&gt;
+</PRE>
+<P>
+You <EM>must</EM> specify a VirtualHost section for the global ServerName too.
+Thus, in the example above, world.cs.vu.nl is first, and global ServerName
+specified and must also be present in one of the VirtualHost environments (as
+in the first in the examples).
+Note that because the global ServerName and the first VirtualHost name
+ServerName are the same, the DocumentRoot should be the same too.
+</P>
+<P>
+The last VirtualHost section in the example catches all incoming requests that
+don't resolve to any of the VirtualHost. It is common for this section to
+have the same DocumentRoot as the global DocumentRoot, but this is possible
+only if this site is not (partial) replicated.
+</P>
+<P>
+If now, or in future you will add ServerAlias directives, then take note that
+you shouldn't add the port number when specifying aliases for your hosts.
+</P>
+<P>
+For each VirtualHost with a new DocumentRoot you should also check whether the
+files are accessible, both by having world-accessible permission bits when
+running the server on an Unix machine and because the server program is
+allowed through it's configuration. Within the <CODE>httpd.conf</CODE> access is
+allowed or denied through the specification of <TT>Directory</TT> directives,
+see the next paragraph and the Apache documentation.
+</P>
+
+<H5><B>Directory</B> specifications</H5>&nbsp;<BR>
+<P>
+Whenever Apache serves a document, locating and authorizing the file to be
+served goes through several stages. The DocumentRoot specifies the initial
+location, Location directives specify how to treat individual paths, but
+whether an actual file may be accessed is controlled by a
+<TT>&lt;Directory&gt;</TT> directive environment. A default configuration will
+always deny access to all files by disallowing anything for ``<TT>/</TT>''
+Therefore if you add a VirtualHost and a DocumentRoot which is not yet allowed,
+you need to add a <TT>Directory</TT> section for it. Also if you change a
+DocumentRoot or ServerRoot directory, remember to check all paths in Directory
+environments.
+</P>
+<P>
+Taken the example in the previous paragraph, access will only be allowed from a
+default location for the files being served at
+<TT>http://www.revolutionware.net:8333/</TT> if we add to the
+<CODE>httpd.conf</CODE>:
+</P>
+<PRE>
+&lt;Directory "/var/www/www.revolutionware.net"&gt;
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+&lt;/Directory&gt;
+</PRE>
+<P>
+This configuration snippet should be stated just below a <TT>&lt;Directory
+/&gt;</TT> specification normally present in your configuration, but at least before
+any VirtualHost specification.
+</P>
+
+<H4><A NAME="htoc17">3.1.3</A>&nbsp;&nbsp;Add Globule support</H4>
+<P>
+This subsection describes how add Globule to a working non-Globule Apache
+configuration, however with no web-site being replicated or imported from
+another origin server.
+</P>
+
+<H5>Add a <B>LoadModule</B> directive for Globule</H5>&nbsp;<BR>
+<P>
+First Apache must be instructed to use the Globule module by adding a line
+which loads the module:
+</P>
+<PRE>
+LoadModule globule_module modules/mod_globule.so
+</PRE>
+<P>
+This LoadModule directive should be placed below the other already present
+LoadModule directives. These normally occur early in the configuration after
+the MPM specific section.
+</P>
+
+<H5>Add Directive <B>GlobuleAdminURL</B></H5>&nbsp;<BR>
+<P>
+Globule will not work unless it has some web address through which it can talk
+to itself. This schizophrenic notion is necessary because Apache isn't a
+single program, but when started Apache splits off in multiple processes. A
+reserved URL lets Globule do it's internal book keeping. Using the
+<TT>GlobuleAdminURL</TT> directive you can provide Globule with a URL into
+your web-server that can freely be used by Globule.
+</P>
+<P>
+A good choice for the site-name is the first, global ServerName that appears
+is your configuration and use a path like <CODE>globuleadm</CODE>. Following the
+earlier examples this would result in the specification of:
+</P>
+<PRE>
+GlobuleAdminURL http://world.cs.vu.nl:8333/globuleadm/
+</PRE>
+<P>
+Note that;
+<UL><LI>
+The URL that you provide must be fully qualified path, including the
+<CODE>http://</CODE> and hostname and port part (for which the global ServerName is
+a good choice);<BR>
+<BR>
+<LI>Any path you will give, like in the example <CODE>/globuleadm/</CODE> will do;<BR>
+<BR>
+<LI>The GlobuleAdminURL <EM>must</EM> end with a slash;<BR>
+<BR>
+<LI>The address to which the URL points should not contain any actual
+content, nor any sub-path of it. It should also not be replicated.<BR>
+<BR>
+This with the exception of the supporting files for the monitoring (see
+section&nbsp;<A HREF="#sec:conf:monitoring">3.4</A>). These files must be actually installed at
+the filesystem location pointed to by the GlobuleAdminURL.
+</UL>
+</P>
+<P>
+The GlobuleAdminUrl directive is normally placed directly after the global
+DocumentRoot and at least below the first, global ServerName and Globule's
+LoadModule directive.
+</P>
+
+<H5>Prevent unwanted entries in your access log</H5>&nbsp;<BR>
+<P>
+Globule relies on a number of periodic tasks executed roughly every second
+(e.g., to check is a given file was modified or if a replica server is still
+alive). These tasks usually perform an internal HTTP request to your own
+server. As a result, your <TT>logs/access_log</TT> file will quickly get filled
+up with records of these internal requests. There is enough of them to fill up
+any hard drive within a matter of days or weeks.
+</P>
+<P>
+All internal Globule requests use either the custom-created SIGNAL or the
+REPORT HTTP method. To filter these requests out of your log files, we
+recommend that you enter in your <TT>httpd.conf</TT> an equivalent of the
+following lines:
+</P>
+<PRE>
+SetEnvIf Request_Method "SIGNAL" dontlog 
+SetEnvIf Request_Method "REPORT" dontlog
+CustomLog logs/access_log combined env=!dontlog
+</PRE>
+<P>
+The order of these statements is relevant. In your <CODE>httpd.conf</CODE> there
+should already be one or more <B>CustomLog</B> directives, where the first
+should be defined at a global level (i.e. not inside an environment like
+VirtualHost) almost directly after several <B>LogFormat</B>s are defined.
+The <B>SetEnvIf</B> entries should be defined in between these two. Then
+<EM>all</EM> occurrences of <B>CustomLog</B> should have <CODE>env=!dontlog</CODE>
+appended to them.<SUP><A NAME="text1" HREF="doc011.html#note1">1</A></SUP>
+</P>
+<A NAME="toc9"></A>
+<H3><A NAME="htoc18">3.2</A>&nbsp;&nbsp;<A NAME="sec:repl"></A>
+ Site Replication</H3>
+<P>
+Globule's main feature is to replicate Web sites. This section will explain
+you how to configure Globule so that documents from a given web site are
+replicated (i.e., copied) across multiple servers and maintained consistent
+(i.e., updated when the origin version is updated).
+</P>
+<P>
+Each Web site must have one <A HREF="doc002.html#sec:intro:term:origin">origin server</A>,
+which holds the authoritative version of the documents. It can be replicated
+across any number of <A HREF="doc002.html#sec:intro:term:backup">backup servers</A> and
+<A HREF="doc002.html#sec:intro:term:replica">replica servers</A>. To establish replication
+from an origin server to a replica server, or from an origin server to a
+backup server, both servers need to be configured appropriately:
+</P>
+<P>
+<OL type=1><LI>
+The origin server needs to know where its replica/backup server
+ is. This is done using the <A HREF="doc006.html#GlobuleReplicaIs">GlobuleReplicaIs</A> or
+ <A HREF="doc006.html#GlobuleBackupIs">GlobuleBackupIs</A> directive.
+<LI>The replica/backup server needs to know where its origin server
+ is. This is done using the <A HREF="doc006.html#GlobuleReplicaFor">GlobuleReplicaFor</A> or
+ <A HREF="doc006.html#GlobuleBackupFor">GlobuleBackupFor</A> directive.
+<LI>Both servers need to authenticate each other by using a shared
+ password (i.e., they both need to know the same password).
+<LI><A NAME="sec:repl:replicaandbackup"></A> If the same site has one or
+ more backup server and one or more replica server at the same time,
+ then replica servers need to know where the backup servers are. This
+ is done using the <A HREF="doc006.html#GlobuleBackupForIs">GlobuleBackupForIs</A> directive.
+</OL>
+</P>
+<P>
+Whenever a browsing user on the Internet surfs to the web-site being
+replicated, one of the replica servers or the origin server is selected to
+handle the request. If a replica server is selected, the browser is
+<EM>redirected</EM> to the replica server. The most accessible form of
+redirection is HTTP redirection. HTTP redirection is easier to understand and
+set up, but has some disadvantages over DNS based redirection. After you
+understand HTTP redirection you can turn to section&nbsp;<A HREF="#sec:conf:dnsredir">3.3</A>
+for DNS based redirection.
+</P>
+
+<H4>Replicating a site with HTTP redirection</H4>
+<P>
+We will go through the configuration of a web-site replicated across one
+origin and one replica server. Later we will add a backup server which acts
+as a fall-back when the origin isn't available for replica servers to fetch
+fresh copies of web pages.
+</P>
+<P>
+<UL><LI>
+- In this example we assume that you have a computer with hostname
+<TT>world.cs.vu.nl</TT> and that you have a web-site
+<CODE>http://www.revolutionware.net</CODE> being served from this computer.
+<LI>- Your friend provides you with the ability to use his web-server
+on his machine <TT>wereld.cs.vu.nl</TT> as a replica.
+At this web-server, your pages will be replicated at the URL:
+<TT>http://wereld.cs.vu.nl:8080/worldpages/</TT>
+</UL>
+</P>
+<P>
+Note that the web-servers run at different port numbers (yours on the default
+port 80, the server of your friend at port 8080). With HTTP redirection any
+combination of ports is possible.
+</P>
+<P>
+As an example of a document being replicated consider the photo image file
+available at <TT>http://www.revolutionware.net/photo.jpg</TT>. This will be
+copied and made available at
+<TT>http://wereld.cs.vu.nl:8080/worldpages/photo.jpg</TT>
+</P>
+<P>
+To replicate your site <TT>www.revolutionware.net</TT> you must modify your
+configuration to something like:
+</P>
+<PRE>
+Listen 80
+ServerName world.cs.vu.nl
+...
+LoadModule globule_module modules/mod_globule.so
+GlobuleAdminURL http://world.cs.vu.nl/globuleadm/
+...
+NameVirtualHost *
+...
+&lt;VirtualHost *&gt;
+  ServerName www.revolutionware.net
+  DocumentRoot /var/www/html/pages
+  <b>&lt;Location "/"&gt;</b>
+    <b>GlobuleReplicate on</b>
+    <b>GlobuleReplicaIs http://wereld.cs.vu.nl:8080/worldpages/  coffee</b>
+  <b>&lt;/Location&gt;</b>
+&lt;/VirtualHost&gt;
+</PRE>
+<P>
+This configuration shows the ServerName, GlobuleAdminURL, etcetera laid out in
+a manner described in section&nbsp;<A HREF="#sec:conf:normal">3.1.2</A>. It then resumes with
+defining the www.revolutionware.net virtual host section and the documents for
+this web-site which will be replicated are to be placed in
+<CODE>/var/www/html/pages</CODE>.<SUP><A NAME="text2" HREF="doc011.html#note2">2</A></SUP>
+</P>
+<P>
+The actual replication is performed by two directives
+<TT>GlobuleReplicate</TT> and <TT>GlobuleReplicaIs</TT>. Both <EM>must</EM> be
+defined inside a <TT>Location</TT> environment which determines from which
+path the documents will be replicated. In this case the path is anything from
+<CODE>/</CODE> and all sub-paths, in other words: the entire web-site.
+</P>
+
+<H5>GlobuleReplicate on</H5>&nbsp;<BR>
+<P>
+The <TT>GlobuleReplicate</TT> declares that the web-site must be replicated
+and that this server will act in the role of origin for the
+web-site. Because the GlobuleReplicate directive is placed inside a Location
+directive, the URL path from which to start to replicate is determined from
+this Location environment.
+</P>
+<P>
+You can also turn redirection partially off for a web-site. Turning off
+replication is described in&nbsp;<A HREF="#sec:turningoff">3.2.2</A>.
+</P>
+
+<H5>GlobuleReplicaIs...</H5>&nbsp;<BR>
+<P>
+One or multiple GlobuleReplicaIs then declare the replica server(s) to which
+to replicate the web-site to.
+</P>
+<P>
+You an your friend need to agree upon an URL path you are exporting (assumed
+until now to be <TT>http://www.revolutionware.net<B>/</B></TT>) and a URL
+path on which your friend will be importing your web-pages (assumed until now
+to be <TT>http://wereld.cs.vu.nl:8080/<B>worldpages/</B></TT>).
+</P>
+<P>
+You also need to agree upon a shared secret; a password known by both your
+origin server and your friends replica server and used for inter-server
+authorization. In the above configuration the phrase ``coffee'' was chosen.
+</P>
+<P>
+Now your server is configured, but your friend needs to update his
+configuration as well.
+</P>
+<PRE>
+Listen 8080
+ServerName wereld.cs.vu.nl
+...
+DocumentRoot /var/www/html
+...
+LoadModule globule_module modules/mod_globule.so
+GlobuleAdminURL http://wereld.cs.vu.nl:8080/globuleadm/
+...
+NameVirtualHost *
+...
+&lt;VirtualHost *&gt;
+  ServerName wereld.cs.vu.nl
+  DocumentRoot /var/www/html
+  <b>&lt;Location "/worldpages/"&gt;</b>
+    <b>GlobuleReplicaFor http://www.revolutionware.net/  coffee</b>
+  <b>&lt;/Location&gt;</b>
+&lt;/VirtualHost&gt;
+</PRE>
+<P>
+This configuration has one Globule-specific directive; namely the
+GlobuleReplicaFor directive which specifies that your friends server will act
+within the role of a replica server for your (as specified in the argument of
+GlobuleReplicaFor) server. The GlobuleReplicaFor also needs to be located
+inside a Location directive to indicate to globule at which path your web-site
+should be available.
+</P>
+<P>
+Your friend has a mirror configuration that you have. The ServerName and
+Location in which your friends GlobuleReplicaFor is form the URL as specified
+by your GlobuleReplicaIs. Vice versa, the ServerName and Location in which
+your GlobuleReplicate/GlobuleReplicaIs is placed form the URL as specified in
+the argument to GlobuleReplicaFor.
+</P>
+
+<H4><A NAME="htoc19">3.2.1</A>&nbsp;&nbsp;Using a backup</H4>
+<P>
+Whenever a replica copy of a document is not available or no longer valid at a
+replica server, it will fetch a fresh copy of the page from the origin server.
+This way replica servers will keep up-to-date. However it can be that the
+origin server is not available at the time.
+</P>
+<P>
+To this end, backup servers may be defined. The role of these servers it to
+maintain a complete set of documents for the replicated web-site. They obtain
+this set of pages from the origin server through the same method as normal
+replica servers, but just make sure they keep a valid copy at all times.
+Replica servers can thus fetch a copy of a web-page from the origin server,
+but if unavailable also from a backup server.
+<SUP><A NAME="text3" HREF="doc011.html#note3">3</A></SUP>.
+</P>
+<P>
+Since the operation of a backup server is largely the same as a replica
+server, the configuration follows the same line, with three exceptions:
+<OL type=1><LI>
+instead of using GlobuleReplicaIs and GlobuleReplicaFor use the
+directives GlobuleBackupIs and GlobuleBackupFor;
+<LI>the normal replicas need to define which alternative backup servers
+there are when the regular origin isn't available, which will be done using
+the specification of a GlobuleBackupForIs;
+<LI>finally the backup-servers need to be told to always keep the documents,
+by specifying a suitable replication policy with the
+GlobuleDefaultReplicationPolicy directive.
+</OL>
+</P>
+<P>
+We will run through the modifications in the origin server and replica server
+and how the backup server should be configured. We assume you have another
+friend with the machine <TT>monde.cs.vu.nl</TT> which offers to be your
+backup-server, then in your configuration of the origin site add the
+GlobuleBackupFor directive:
+</P>
+<PRE>
+Listen 80
+ServerName world.cs.vu.nl
+...
+&lt;VirtualHost *&gt;
+  ServerName www.revolutionware.net
+  DocumentRoot /var/www/html/pages
+  &lt;Location "/"&gt;
+    GlobuleReplicate on
+    GlobuleDefaultReplicationPolicy Invalidate
+    GlobuleReplicaIs http://wereld.cs.vu.nl:8080/worldpages/  coffee
+    GlobuleBackupIs  http://monde.cs.vu.nl:8333/worldpages/   tea
+  &lt;/Location&gt;
+&lt;/VirtualHost&gt;
+</PRE>
+<P>
+Clearly, backup servers are almost the same as regular replica servers for the
+redirector. The main change is that all regular replica servers need to be
+explicitly told there is a redirector available for this site:
+</P>
+<PRE>
+Listen 8080
+ServerName wereld.cs.vu.nl
+...
+&lt;VirtualHost *&gt;
+  ServerName wereld.cs.vu.nl
+  DocumentRoot /var/www/html
+  &lt;Location "/worldpages/"&gt;
+    GlobuleReplicaFor http://www.revolutionware.net/  coffee
+    <b>GlobuleBackupForIs http://www.revolutionware.net/ http://monde.cs.vu.nl:8333/worldpages/</b>
+  &lt;/Location&gt;
+&lt;/VirtualHost&gt;
+</PRE>
+<P>
+Note that the usage of the GlobuleBackupForIs is with two arguments, first
+arguments specifies for which site we are defining a backup
+(GlobuleBackup<B>For</B>Is), the second argument specifies who the backup
+server is (GlobuleBackupFor<B>Is</B>). No password needs to be defined; the
+first argument must always be the same as specified in GlobuleReplicaFor.
+</P>
+<P>
+Finally the backup server of your other friend needs to setup his
+configuration, which is almost the same as setting up a replica, but you
+should also add a GlobuleDefaultReplicationPolicy and use GlobuleBackupIs.
+GlobuleBackupIs<SUP><A NAME="text4" HREF="doc011.html#note4">4</A></SUP>.
+</P>
+<PRE>
+Listen 8080
+ServerName wereld.cs.vu.nl
+...
+DocumentRoot /var/www/html
+...
+LoadModule globule_module modules/mod_globule.so
+GlobuleAdminURL http://wereld.cs.vu.nl:8080/globuleadm/
+...
+NameVirtualHost *
+...
+&lt;VirtualHost *&gt;
+  ServerName wereld.cs.vu.nl
+  DocumentRoot /var/www/html
+  &lt;Location "/worldpages/"&gt;
+    <b>GlobuleDefaultReplicationPolicy Ttl</b>
+    <b>GlobuleBackupFor http://www.revolutionware.net/  tea</b>
+  &lt;/Location&gt;
+&lt;/VirtualHost&gt;
+</PRE>
+
+<H4><A NAME="htoc20">3.2.2</A>&nbsp;&nbsp;<A NAME="sec:turningoff"></A>Replicating a partial site</H4>
+<P>
+Globule allows you to easily define parts of your site that should <EM>not</EM>
+be replicated. The origin server will simply not redirect clients to replica
+servers, but only the the original, origin server for the paths selected not
+to be replicated.
+</P>
+<PRE>
+&lt;VirtualHost *:8333&gt;
+  ServerName www.revolutionware.net:8333
+  DocumentRoot ...
+  &lt;Location "/"&gt;
+    GlobuleReplicate on
+    GlobuleReplicaIs ...
+    GlobuleBackupIs  ...
+  &lt;/Location&gt;
+  &lt;Location "/cgi-bin/"&gt;
+    GlobuleReplicate off
+  &lt;/Location&gt;
+&lt;/VirtualHost&gt;
+</PRE>
+<P>
+This instructs Globule to replicate the web-site with the URL
+<TT>http://www.revolutionware.net:8333/</TT> except the pages that are in the
+sub-path <TT>http://www.revolutionware.net:8333/cgi-bin/</TT>.
+</P>
+<P>
+When using HTTP redirection, another way to replicate only parts of a site is
+to insert the <A HREF="doc006.html#GlobuleReplicate">GlobuleReplicate</A>, <A HREF="doc006.html#GlobuleReplicaIs">GlobuleReplicaIs</A>
+and <A HREF="doc006.html#GlobuleBackupIs">GlobuleBackupIs</A> directives inside a <TT>&lt;Location&gt;</TT>
+container with a sub-path of <CODE>/</CODE>:
+</P>
+<PRE>
+&lt;VirtualHost *:8333&gt;
+  ServerName www.revolutionware.net:8333
+  DocumentRoot ...
+  &lt;Location "/replicate_me/"&gt;
+    GlobuleReplicate on
+    GlobuleReplicaIs ...
+    GlobuleBackupIs  ...
+  &lt;/Location&gt;
+&lt;/VirtualHost&gt;
+</PRE>
+<A NAME="toc10"></A>
+<H3><A NAME="htoc21">3.3</A>&nbsp;&nbsp;<A NAME="sec:conf:dnsredir"></A>
+ Client Redirection using DNS</H3>
+
+<H4><A NAME="htoc22">3.3.1</A>&nbsp;&nbsp;What is DNS redirection?</H4>
+<P>
+Until now, all configurations shown in this documentation use a redirection
+mechanism called HTTP redirection. This means that, when an origin Web server
+receives a request, it can reply by ordering the browser to re-issue the same
+request at a different server. This scheme is extremely simple, but it has two
+major drawbacks. First, as the browser is effectively returned a modified URL,
+it can decide to store that URL for future reference. As a consequence,
+removing or replacing a replica may render various cached URLs
+invalid. Second, each request is still initially posted to the origin server,
+so the success of the request depends on the availability of the origin.
+</P>
+<P>
+DNS redirection addresses these problems by basing redirection on a web site's
+name. For example, when a browser queries ``http://www.revolutionware.net/'',
+it first resolves the server name ``www.revolutionware.net''. In a
+non-replicated setup, the browser would always receive the IP address of the
+server to contact. Using DNS redirection, the DNS redirector will check where
+the client is located and return the IP address of the most suitable server
+out of the available replica servers for the site. IP addresses are usually
+not shown to the users, so DNS redirection is invisible to them.
+</P>
+<P>
+DNS redirection imposes a few restrictions:
+<UL><LI>
+Redirection can only be realized for a Web site as a whole, so
+ everything from the location <CODE>/</CODE>. It is impossible to replicate
+ only a part of a site.<BR>
+<BR>
+<LI>All servers taking part in the replication of the Web site must
+ run on the same port number.<BR>
+<BR>
+<LI>Running a DNS redirector requires that Apache is started as
+ root.<BR>
+<BR>
+<LI>You must control the DNS domain inside which you want to run your
+ web-site. For example, if you want to have your site available
+ under the URL <CODE>http://www.revolutionware.net/</CODE>&nbsp;&nbsp;then you must
+ own the domain <CODE>revolutionware.net</CODE>. If you do not already own
+ a domain, then any
+ <A HREF="http://www.internic.net/regist.html">registrar</A> will
+ let you register one for a modest yearly fee for the <CODE>.com</CODE>,
+ <CODE>.net</CODE> and <CODE>.org</CODE> and some more top-levels. Other top
+ levels, such as <CODE>.nl</CODE> are available through
+ <A HREF="http://www.iana.org/cctld/cctld-whois.htm">local</A>
+ registrars.<BR>
+<BR>
+Alternatively, if one of your friends already owns a DNS domain
+ (for instance <CODE>revolutionware.net</CODE>), then she may delegate a sub-domain
+ (for instance <CODE>berry.revolutionware.net</CODE>) to you so that you can for
+ example create a site called
+ <CODE>http://www.berry.revolutionware.net</CODE> or even<BR>
+<CODE>http://berry.revolutionware.net</CODE>.
+</UL>
+</P>
+
+<H4><A NAME="htoc23">3.3.2</A>&nbsp;&nbsp;Required elements to setup DNS redirection in Globule</H4>
+<P>
+<UL><LI>
+The Apache installation of the origin server must be compiled with the
+ patch provided by Globule. This is done by default when using the automated
+ installer, otherwise refer to section&nbsp;<A HREF="doc003.html#sec:install:source">2.3</A>.<BR>
+<BR>
+<LI>You must setup a DNS server that will contain all informations
+ about the domain. How to install a DNS server is unfortunately
+ relatively complex, and outside the scope of this document. We
+ refer the reader to a good
+ <A HREF="http://www.freeos.com/articles/3956/">DNS
+ tutorial</A>, or to this
+ <A HREF="http://www.oreilly.com/catalog/dns4/">famous book</A>
+ on the topic. Alternatively, most good registrars offer a service
+ where they run DNS servers for you, and simply ask you to provide
+ the information that must be kept there. We strongly recommend
+ readers to select a registrar which provides this service, such as
+ <A HREF="http://www.gandi.net/">Gandi</A> and
+ <A HREF="http://www.godaddy.com/">GoDaddy</A> amongst many
+ others.
+</UL>
+</P>
+
+<H4><A NAME="htoc24">3.3.3</A>&nbsp;&nbsp;Setting up DNS entries for redirection</H4>
+<P>
+Let's assume that you own the domain <CODE>revolutionware.net</CODE> and that you
+want to setup DNS redirection for the site
+<CODE>http://www.revolutionware.net/</CODE>. In a non-distributed setup, the name
+<CODE>www.revolutionware.net</CODE> would simply be an alias for the actual server's
+host name. In a Globule setup, <CODE>www.revolutionware.net</CODE> will point to
+different machines when being looked up by different clients. We call
+<CODE>www.revolutionware.net</CODE> the <EM>generic name</EM> of the site, which
+represents all machines collectively. Additionally, each server taking part
+in the replication needs a <EM>specific name</EM> of its own that will be used
+when Globule needs to contact one specific server within the replicated
+site<SUP><A NAME="text5" HREF="doc011.html#note5">5</A></SUP>.
+It is not a problem to give multiple names to the same machine, so even if
+these machines already have names (e.g., ``wereld.cs.vu.nl''), you should
+create additional generic and specific names just for the sake of the Web
+site.
+</P>
+<P>
+Imagine that you have two machines called ``wereld.cs.vu.nl'' and
+``world.cs.vu.nl'', which you want to perform the role of origin server and
+replica server respectively. Let's assign them the specific names
+<CODE>origin.revolutionware.net</CODE> and <CODE>replica.revolutionware.net</CODE>
+respectively. The following lines should be inserted in your DNS
+zone<SUP><A NAME="text6" HREF="doc011.html#note6">6</A></SUP>:
+</P>
+<PRE>
+$ORIGIN revolutionware.net.
+origin   IN  CNAME  wereld.cs.vu.nl.
+replica  IN  CNAME  world.cs.vu.nl.
+</PRE>
+<P>
+Do not forget the dots at the ends of the lines!
+</P>
+<P>
+Alternatively, if you know the IP addresses of your servers (e.g.,
+130.37.198.252 and 130.37.193.70), then you may define your zone as follows to
+provide minor performance and reliability improvements:
+</P>
+<PRE>
+$ORIGIN revolutionware.net.
+origin   IN  A  130.37.198.252
+replica  IN  A  130.37.193.70
+</PRE>
+<P>
+Note that A records do not end with a dot.
+</P>
+<P>
+You must now define the generic name <CODE>www.revolutionware.net</CODE> where your
+site will be located. We do not want to associate a specific IP address to
+this name, but instead let Globule's DNS redirector decide which IP address
+should be returned to clients who lookup that name. In the setup we are
+creating, the origin server will also be the DNS redirector, so you need to
+insert this in the DNS (it is not possible to use an IP address here instead
+of the name origin.revolutionware.net):
+</P>
+<PRE>
+www  IN  NS  origin.revolutionware.net.
+</PRE>
+<P>
+Be warned that any change in the DNS records may take a few hours before being
+ready for use. If your DNS-redirected site does not work as expected and you
+see errors like ``www.revolutionware.net not found'', this probably means that
+you should be patient and wait for changes to be fully propagated.
+</P>
+
+<H4><A NAME="htoc25">3.3.4</A>&nbsp;&nbsp;Configuring Globule for DNS redirection</H4>
+<P>
+You must now configure the origin and the replica server so that they support
+DNS redirection.
+</P>
+<P>
+Two modifications are needed compared to a non-replicated setup:
+<OL type=1><LI>
+The origin server must be told to act as a DNS redirector.
+<LI>The origin and replica servers must be configured to respond to the
+ newly-defined generic and specific DNS names.
+</OL>
+</P>
+<P>
+A normal origin server configuration without DNS redirection, based on the
+machine hostname wereld.cs.vu.nl and the site www.revolutionware.net, would
+look similar to:
+</P>
+<PRE>
+  ...
+  ServerName wereld.cs.vu.nl
+  ...
+  GlobuleAdminURL http://wereld.cs.vu.nl/globulectl
+  ...
+  NameVirtualHost *
+
+  &lt;VirtualHost *&gt;
+    ServerName www.revolutionware.net
+    DocumentRoot ...
+    &lt;Location /&gt;
+      GlobuleReplicate on
+      GlobuleReplicaIs ...
+  ...
+</PRE>
+<P>
+Note that the sections separated by vertical dots (:) appear at different
+points in the configuration file. This order matters, especially the
+VirtualHost which needs to be at the end of the configuration file.
+</P>
+<P>
+First, let's enable DNS redirection at the origin server. This is done using
+the <TT>GlobuleRedirectionMode</TT> directive. At the global level you need to
+add or modify the redirection mode into <CODE>GlobuleDefaultRedirection BOTH</CODE>,
+enabling both HTTP and DNS redirection for the server as a whole.<BR>
+Then, inside each VirtualHost section which specifies an origin of a
+Globule-replicated site, you must declare whether to use HTTP redirection or
+DNS redirection only.
+</P>
+<P>
+Having done that, you only need to specify that your site can be reached both
+as <CODE>http://www.revolutionware.net/</CODE> and
+<CODE>http://origin.revolutionware.net/</CODE>.
+</P>
+<P>
+Here is the resulting configuration file:
+</P>
+<PRE>
+  ...
+  ServerName wereld.cs.vu.nl
+  ...
+  GlobuleAdminURL http://wereld.cs.vu.nl/globulectl
+  GlobuleRedirectionMode BOTH
+  ...
+  NameVirtualHost *
+
+  &lt;VirtualHost *&gt;
+    ServerName origin.revolutionware.net
+    ServerAlias www.revolutionware.net
+    GlobuleRedirectionMode DNS
+    DocumentRoot ...
+    &lt;Location /&gt;
+      GlobuleReplicate on
+      GlobuleReplicaIs http://replica.revolutionware.net/  sharedpassword
+  ...
+</PRE>
+<P>
+It is important that the ServerName entry contains the specific server name
+(origin.revolutionware.net), and that the generic server name
+(www.revolutionware.net) appears as the first entry of the ServerAlias
+directive. Specific names should be used in other directives such as
+GlobuleReplicaIs and GlobuleBackupIs.
+</P>
+<P>
+You must also update the replica server's configuration file to specify that
+the replica of the <CODE>http://www.revolutionware.net/</CODE> site can also be
+reached using it's location-specific address
+<CODE>http://replica.revolutionware.net/</CODE>.
+</P>
+<PRE>
+  ServerName world.cs.vu.nl
+  ...
+  GlobuleAdminURL http://world.cs.vu.nl/globulectl/
+  ...
+  NameVirtualHost *
+  
+  &lt;VirtualHost *&gt;
+    ServerName replica.revolutionware.net
+    ServerAlias www.revolutionware.net
+    DocumentRoot ...
+    &lt;Location /&gt;
+      GlobuleReplicaFor  http://origin.revolutionware.net/  sharedpassword
+    &lt;/Location&gt;
+  &lt;/VirtualHost&gt;
+</PRE>
+<P>
+You can now start the two servers. Do not forget to run them as root, as
+regular users normally cannot run DNS redirectors! Your site should now be
+available at URL <CODE>http://www.revolutionware.net/</CODE>.
+</P>
+
+<H4><A NAME="htoc26">3.3.5</A>&nbsp;&nbsp;Testing DNS redirection</H4>
+<P>
+With DNS redirection, the identity of the server which served your requests
+will not be shown to you. You may then start wondering if redirection
+actually works, or if all requests will end up being served by a single
+server.
+</P>
+<P>
+Most Linux distributions contain the utility ``dig'' which is used to query
+DNS servers by hand. If you do not find it, it is usually part of an RPM
+package called <CODE>bind-utils</CODE>.
+</P>
+<P>
+Start by testing your DNS domain:
+</P>
+Type:
+<PRE>
+dig -t NS revolutionware.net
+</PRE>
+<P>
+The result looks something like:
+</P>
+<PRE>
+; &lt;&lt;&gt;&gt; DiG 9.2.4 &lt;&lt;&gt;&gt; -t NS revolutionware.net
+;; global options:  printcmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 43750
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; QUESTION SECTION:
+;revolutionware.net.         IN  NS
+
+;; ANSWER SECTION:
+revolutionware.net.   86400  IN  NS  NAME-OF-YOUR-DNS-SERVER1.com.
+revolutionware.net.   86400  IN  NS  NAME-OF-YOUR-DNS-SERVER2.com.
+
+;; Query time: 1 msec
+;; SERVER: 130.37.20.3#53(130.37.20.3)
+;; WHEN: Thu Nov 10 15:18:18 2005
+;; MSG SIZE  rcvd: 66
+</PRE>
+<P>
+In the ``answer section'' you should see at least two lines with the names of
+the DNS servers responsible for your domain. If you used the services of your
+registrar to hold informations about your domain, then both servers should
+probably belong to it.
+</P>
+<P>
+Now, test the names that you have created:
+</P>
+<PRE>
+dig origin.revolutionware.net
+</PRE>
+<PRE>
+; &lt;&lt;&gt;&gt; DiG 9.2.4 &lt;&lt;&gt;&gt; origin.revolutionware.net
+;; global options:  printcmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 50422
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;origin.revolutionware.net.      IN   A
+
+;; ANSWER SECTION:
+origin.revolutionware.net.  430  IN   A    130.37.199.101
+
+;; AUTHORITY SECTION:
+revolutionware.net.         430  IN   NS   NAME-OF-YOUR-DNS-SERVER1.com. 
+
+;; Query time: 3 msec
+;; SERVER: 130.37.20.3#53(130.37.20.3)
+;; WHEN: Thu Nov 10 15:31:30 2005
+;; MSG SIZE  rcvd: 66
+</PRE>
+<P>
+In the ``answer section'' you should see the IP address of your origin
+server. Do the same to test the name <CODE>replica.revolutionware.net</CODE>.
+</P>
+<P>
+Now, let's test if the redirector is correctly registered:
+</P>
+<PRE>
+dig -t NS www.revolutionware.net
+</PRE>
+<PRE>
+; &lt;&lt;&gt;&gt; DiG 9.2.4 &lt;&lt;&gt;&gt; -t NS www.revolutionware.net
+;; global options:  printcmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 55825
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;www.revolutionware.net.         IN   NS
+
+;; AUTHORITY SECTION:
+www.revolutionware.net.     600  IN   NS   origin.revolutionware.net.
+
+;; Query time: 0 msec
+;; SERVER: 130.37.193.66#53(goupil)
+;; WHEN: Thu Nov 10 15:34:50 2005
+;; MSG SIZE  rcvd: 62
+</PRE>
+<P>
+The authority section should contain a line ending up with<BR>
+<CODE>NS origin.revolutionware.net.</CODE><BR>
+Finally, let's test if the DNS redirector works:
+</P>
+<PRE>
+dig @origin.revolutionware.net www.revolutionware.net
+</PRE>
+<PRE>
+; &lt;&lt;&gt;&gt; DiG 9.2.4 &lt;&lt;&gt;&gt; @origin.revolutionware.net www.revolutionware.net
+;; global options:  printcmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 61015
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;www.revolutionware.net.         IN   A
+
+;; ANSWER SECTION:
+www.revolutionware.net.     10   IN   A    130.37.199.101
+
+;; AUTHORITY SECTION:
+www.revolutionware.net.     0    IN   NS   origin.revolutionware.net.
+
+;; Query time: 1 msec
+;; SERVER: 130.37.198.252#53(origin.revolutionware.net)
+;; WHEN: Thu Nov 10 15:38:04 2005
+;; MSG SIZE  rcvd: 78
+</PRE>
+<P>
+In the ``answer section'' you should see the IP address of one of your
+servers. Issue the same command several times, you should receive a different
+IP address each time.
+</P>
+
+<H4><A NAME="htoc27">3.3.6</A>&nbsp;&nbsp;Advanced usage</H4>
+
+<H5>Using a backup server</H5>&nbsp;<BR>
+<P>
+A backup server adds virtually no additional complexity to the setup. Like
+using <CODE>replica.revolutionware.net</CODE> as the DNS name for a plain replica,
+we can use a separate name for a replica which performs the role of a backup
+server. Suppose we add <CODE>backup.revolutionware.net</CODE> to the DNS, which is
+some alias name for a server which will play the role of the backup server.
+Then the origin of www.revolutionware.net will declare:
+</P>
+<PRE>
+    ServerName origin.revolutionware.net
+    ServerAlias www.revolutionware.net
+    &lt;Location /&gt;
+      GlobuleReplicate on
+      GlobuleReplicaIs http://replica.revolutionware.net/  sharedpassword
+      GlobuleBackupIs  http://backup.revolutionware.net/   wachtwoord
+    ...
+</PRE>
+<P>
+The backup server will be the same as any other replica server, but instead of
+using GlobuleReplicaFor it will use the directive GlobuleBackupFor and use
+backup.revolutionware.net as ServerName and www.revolutionware.net as
+ServerAlias. Likewise the replica servers should use the name
+<CODE>backup.revolutionware.net</CODE> in their declaration of a GlobuleBackupForIs
+directive:
+</P>
+<PRE>
+    ServerName replica.revolutionware.net
+    ServerAlias www.revolutionware.net
+    &lt;Location /&gt;
+      GlobuleReplicaFor  http://origin.revolutionware.net/  sharedpassword
+      GlobuleBackupForIs http://origin.revolutionware.net/  http://backup.revolutionware.net/
+    ...
+</PRE>
+
+<H5>Not running DNS redirection on port 53 for testing purposes</H5>&nbsp;<BR>
+<P>
+Globule will bind itself to port 53 for answering DNS queries. This port
+number is the only port normally used by browsers to resolve the hostnames in
+URLs. However if you want to just test DNS redirection you can resolve
+hostnames using the <CODE>dig</CODE> program. Using the -p option you can instruct
+dig to contact the name server at a different port, however you should also
+contact the machine serving the request directly, so you need to use the
+<TT>@<I>hostname</I></TT> construct. For instance:
+</P>
+<PRE>
+dig -p 5353 @wereld.cs.vu.nl www.revolutionware.net
+</PRE>
+<P>
+Would instruct dig to ask the name server running on the machine
+wereld.cs.vu.nl at port 5353 to resolve the name www.revolutionware.net.
+</P>
+<P>
+Globule can be instructed to resolve DNS queries on another port as port 53
+using the GlobuleDNSRedirectionAddress directive:
+</P>
+<PRE>
+GlobuleDNSRedirectionAddress :5353
+</PRE>
+<P>
+The GlobuleDNSRedirectionAddress directive needs to be specified before any
+GlobuleRedirectionMode directive.
+</P>
+<A NAME="toc11"></A>
+<H3><A NAME="htoc28">3.4</A>&nbsp;&nbsp;<A NAME="sec:conf:monitoring"></A>
+ System Monitoring</H3>
+<P>
+Globule is more complex than a regular Apache server. As it is inherently
+distributed, information about it is spread over multiple machines which bare
+complex relationships. One of the goals of Globule is performance and
+reliability increase, but evaluation is less straight forward because of the
+distributed system. In case of unexpected behaviour the cause of this is
+harder to trace.
+Globule has a monitoring framework which allows to gain more insight behaviour
+of a Globule replicates web-site.
+</P>
+<P>
+Typically an administrator wants to monitor a running service, which we define
+as the ability to:
+<OL type=1><LI>
+Find the reason behind any current fault or apparent incorrect
+operation, such as the inability of Globule to use a replica server and
+redirect to it;
+<LI>View the impending failure, whether the server is becoming overloaded or
+other exceptional information;
+<LI>Record resource usage for accounting purposes;
+<LI>Use resource usage and visit rate to evaluate how well the web-server
+performs. Specifically, view the benefits Globule brings;
+<LI>Interact with the tunable parameter of the site-operation such that an
+optimum performance can be reached;
+<LI>Gather statistical information about the visitors of the web-site for
+external purposes such as generating a report for marketing;
+<LI>Have fun watching the server doing its work, otherwise a background task
+like a web-server is a nearly invisible entity.
+</OL>
+</P>
+<P>
+To address these needs, Globule has an interface for these forms of
+monitoring controls:
+<OL type=1><LI>
+log a history of regular operations, web-page accesses in this case;
+<LI>view and modify tunable parameters;
+<LI>view the current state;
+<LI>view a history of exceptional events (such as errors, warnings, but also
+for instance increases in resource usage).
+</OL>
+</P>
+<P>
+Apache itself provides two logging files which provide some means of
+monitoring. One is the access-log, which contains a listing of all URLs which
+have been requested from the web-site. The other logging file is the
+error-log, which contains error messages ranging in severity from critical,
+through normal warnings and informational messages. The amount of current
+state that can be monitored is very minimal, only server-info and
+server-status module provide some information and are rarely used.
+</P>
+<P>
+The access- and error-log contain only a bit of monitoring data, which is also
+unstructured and limited in information. Therefore Globule also provides
+monitoring information which is more suited for a distributed setup, is
+extendible and has more advantages. It is however very useful to have the
+standard error and access log interface for two reasons:
+</P>
+<P>
+<OL type=1><LI>
+The error log in certain cases is the only way in which errors can be
+reported back to the administrator of the web-server;
+<LI>Standard utilities and analysis software reuse the default Apache access
+log (and to a lesser extent the error log) in their operation.
+</OL>
+</P>
+<P>
+Globule therefore provides three main access points for monitoring. First,
+errors, warnings and some other messages are written to the default Apache
+error log. Second, an equivalence for the access log is produced. The third
+monitoring access is specific to Globule. To make it as accessible as
+possible, detailed Globule information is made available through a
+web-interface.
+</P>
+<P>
+The usage of these three are now viewed individually in the next subsections.
+</P>
+
+<H4><A NAME="htoc29">3.4.1</A>&nbsp;&nbsp;Error log</H4>
+<P>
+Each Apache server maintains one or more error-log file(s) where information,
+warnings and error messages are written.
+</P>
+<P>
+The error log is not Globule specific and therefore also other modules use the
+same error log file to write down messages. Its purpose is primary to log
+messages which hamper the correct or intended working of the web-server after
+the web-server has been started.<BR>
+Such messages are written into the error-log as indicated in the
+<CODE>httpd.conf</CODE> configuration file, as Apache is a server program. Services
+run in the background without ever contacting the user directly.
+</P>
+<P>
+A standard error log file is normally defined naming either <CODE>error_log</CODE>
+or <CODE>error.log</CODE> and placed into the <TT><I>ServerRoot</I></TT><TT>/logs</TT>
+directory.
+</P>
+<P>
+Similar to what Apache itself does, Globule associates different levels of
+significance to messages it generates. This allows the administrator to
+select which messages should be written into the log or processed otherwise.
+Globule error, warning and informational messages are not marked any
+differently from any other messages. Next to the LogLevel directive, however,
+there is another Globule-specific directive that controls how verbose Globule
+is in reporting events. This because within a running Globule enabled server
+you want to be able to increase the verbosity for certain types of events when
+finding faults. The directive <TT>GlobuleDebugProfile</TT> sets the initial
+verbosity of Globule.
+</P>
+<P>
+Only one GlobuleDebugProfile directive can and should be used, which takes
+global effect over the web-sites. A common use it to set it at a default
+level using:
+</P>
+<PRE>
+GlobuleDebugProfile default
+</PRE>
+<P>
+This will keep any messages of level ``error'' or above passing through to the
+Apache logging method. Other profiles available at this time are:
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP><TT>default</TT></TD>
+<TD ALIGN=left NOWRAP>significant error messages are logged</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>defaults</TT></TD>
+<TD ALIGN=left NOWRAP><I>same as default</I></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>extended</TT></TD>
+<TD ALIGN=left NOWRAP>errors and exceptional situations are logged,</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>&nbsp;</TD>
+<TD ALIGN=left NOWRAP>this will cause periodically logging even if idle</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>verbose</TT></TD>
+<TD ALIGN=left NOWRAP>more verbose logging of events</TD>
+</TR></TABLE>
+These levels relate to the LogLevel ``warn'' and ``info'', but Globule may
+provide specific filters to specific classes of events at runtime.
+</P>
+<P>
+For a correctly running server, informational and warning messages generated
+by Globule may be accessed through the web interface discussed later too, but
+the error-log is the only means for Apache/Globule to report situations in
+which the server is failing. It therefore should be inspected by the
+administrator of a web-site in case of problems.
+</P>
+<P>
+Note that when configuring Apache you may:
+<UL><LI>
+Denote separate error log files for separate VirtualHost definitions.
+<LI>Use LogLevel to suppress messages having a severity below a certain
+level. Note that the LogLevel directive needs to be defined before ErrorLog
+directive to take effect, this allows overriding the LogLevel for different
+ErrorLog definitions.
+<LI>Not see any error messages when starting Apache, but Apache will still
+fail to start. Therefore you should always inspect the error-log. There are
+even instances where Apache will fail to start and no error messages are
+produced in the error-log. In these cases you want to check whether the
+Apache service daemon has started, named <CODE>httpd</CODE>.
+</UL>
+</P>
+
+<H4><A NAME="htoc30">3.4.2</A>&nbsp;&nbsp;Merged access log</H4>
+<P>
+A standard installation of Apache provides log files of all successful URL
+accesses to the server as defined by the CustomLog and/or AccessLog
+directives. The format of the AccessLog filename is referred to as a Common
+Log Format (CLF) which is a format shared between multiple types of
+web-servers. With the CustomLog format you are free to specify the format to
+be used, but most likely you will use an extension to the CLF known as a
+combined log format. In any case these log file can be global, or you can
+specify a separate access log for individual VirtualHost specifications.
+</P>
+<P>
+The default access log produced by Apache is however badly suited within a
+setup of Globule. It namely only logs accesses to <EM>this</EM> web-server.
+Accesses to the same web-site but serviced by a replica web-server are logged
+at that other web-server. This is not the result you would want from an
+access log, as one is not interested in the accesses to this web-<EM>server</EM>
+but to this web-<EM>site</EM>.
+Globule solves this by merging logs of all requests to all replica web-servers
+serving the same web-site.
+</P>
+<P>
+Each web-server collects data on a per-site basis regarding accesses and
+some other information. These partial logs are periodically shipped back,
+based on the interval as specified by the <TT>GlobuleHeartBeatInterval</TT>
+directive, through the HTTP protocol back to the origin server, which appends
+this to its own information. Consequently the accumulation of this data is
+only partially sorted in time.<SUP><A NAME="text7" HREF="doc011.html#note7">7</A></SUP>
+</P>
+<P>
+This combined access log not only reports on the bare accesses being made, but
+also some information relevant for a distributed web-site setup, such as which
+replica server received the request. Because of this, a file format such as
+the CLF is not usable and Globule uses a different format (documented in
+appendix&nbsp;<A HREF="doc009.html#sec:reportlog-format">B.1</A>). One can however convert merged access
+logs from Globule's format into standard common log format (see
+Section&nbsp;<A HREF="#sec:conf:monitoring:globuleutil">3.4.3</A>).
+</P>
+<P>
+Apart from the format, also the location where this file is stored is
+different. If you replicate a web-site, then Globule creates a directory
+named <CODE>.htglobule</CODE> in the directory containing the web-documents being
+replicated. In this directory a file <CODE>report.log</CODE> is created which is a
+log of events accumulated from all replica servers. For instance if you have
+the following definition in your <CODE>httpd.conf</CODE>:
+<PRE>
+DocumentRoot /home/www/htdocs
+&lt;Location /&gt;
+GlobuleReplicate on
+&lt;/Location&gt;
+</PRE>Then this report-log is stored as
+<CODE>/home/www/htdocs/.htglobule/report.log</CODE>.
+</P>
+<P>
+As mentioned in the introduction of this section there are utilities which
+depend on a CLF or combined log format access-log file to extract information
+about the usage of the web-site. Naturally you would want to be able to use
+any existing utilities. Therefore the globule module is accompanied with a
+program which transforms a report.log file into a valid access-log file in
+combined or CLF format. Naturally the additional information stored by
+Globule is lost in this translation but these would not make sense to any such
+software.
+</P>
+
+<H4><A NAME="htoc31">3.4.3</A>&nbsp;&nbsp;<A NAME="sec:conf:monitoring:globuleutil"></A>
+ Utility program globuleutil</H4>
+<P>
+The <CODE>globuleutil</CODE> program converts one or more report-log files into a
+file similar in structure to a Apache common or combined log file. The output
+produced is written to standard output and can be either fed directly using a
+pipe into a web log analyzer program such as webalizer or written to a file:
+</P>
+<PRE>
+globuleutil /home/www/htdocs/.htglobule/report.log &gt; access.log
+</PRE>
+<P>
+When the utility program is given multiple arguments representing multiple
+report-log files, they will be merged based on the timestamp in each file.
+Not only report-log files may be specified as input files, also regular Apache
+common or combined log file formats may be specified.
+</P>
+<P>
+Since most of the time input files are not completely sorted in time, you need
+to either sort them beforehand, or indicate to globuleutil that the files are
+only partially sorted.
+The globuleutil utility will then allow for entries to be out of place, as
+long as the time difference between where the entry should have appeared in
+the log file based on its timestamp and the place where it actually appeared
+later on in the log file is no longer than <I>n</I> seconds away. The maximum
+allowed slag <I>n</I> is the lookahead window in time. This time difference is on
+a per input file basis.
+</P>
+<P>
+If the window given is too small, an error message will be generated. When
+specifying a large time interval window, the globuleutil program will execute
+much slower and consume more memory. This trade-off depend on the settings of
+your web-server, the outage of replica and origin servers and the
+<TT>GlobuleHeartBeatInterval</TT> interval.
+</P>
+
+<H5>globuleutil usage</H5>&nbsp;<BR>
+<PRE>
+<b>globuleutil</b> [ <b>-v</b> ] [ <b>-f</b> <b>combined</b> | <b>common</b> ]
+            [ <b>-w</b> <i>seconds</i> ] [ <b>-p</b> <i>prefix</i> ]
+            <i>file1</i>...
+</PRE>
+
+<H5><TT>-h</TT></H5>&nbsp;<BR>
+<P>
+Output help information.
+</P>
+
+<H5><TT>-v</TT></H5>&nbsp;<BR>
+<P>
+Increases the verbosity of information such as the input file format detected,
+resources and interval window used, etcetera. Multiple options <TT>-v</TT>
+increase the verbosity level.
+</P>
+
+<H5><TT>-f<I>format</I></TT> or
+ <TT>--format=<I>format</I></TT></H5>&nbsp;<BR>
+<P>
+Where format it either <TT>common</TT> or <TT>combined</TT>, specifies in
+which Apache log style to output the result. Only the common a.k.a. CLF file
+format is standardized, but the combined log file is an often used Apache file
+format.
+</P>
+
+<H5><TT>-p<I>prefix</I></TT> or <TT>--prefix=<I>prefix</I></TT></H5>
+<P>
+Prepend the path <I>prefix</I> before each URL. The URIs in the report-log
+files are relative to the path imported or exported from. Full URLs are not
+used as the initial path can be different on the replica servers and origin
+server in case of HTTP redirection. Therefore you often want to prepend the
+path from which the documents are being exported, equal to the path in the
+<TT>Location</TT> directive in which the <CODE>GlobuleReplicate</CODE> on resides.
+</P>
+<P>
+For DNS redirection, this would be <TT>/</TT>, which is the default.
+</P>
+
+<H5><TT>-w <I>seconds</I></TT> or
+ <TT>--lookahead-window=<I>seconds</I></TT></H5>&nbsp;<BR>
+<P>
+Specifies the window by of time by which items in any input file may be
+unsorted.
+</P>
+
+<H4><A NAME="htoc32">3.4.4</A>&nbsp;&nbsp;Webalizer monitoring and the installer setup</H4>
+<P>
+If you have chosen for the installer procedure to install Globule, it will
+include the program webalizer to provide statistics about your web-site and
+the globuleutil program is automatically invoked when you access the web-page
+with the webalizer report through the globule administration URL. More on the
+administration URLs in the next section.
+</P>
+<P>
+Your installation uses the globulectl program with run option webalizer to
+detect which origin site is to be updated and how to run the
+report.log file through globuleutil and feed the result to the webalizer
+statistical program. If you have different needs then you would to modify
+this script and the webalizer configuration file
+...<CODE>etc/webalizer.conf</CODE>.
+</P>
+<P>
+The webalizer reports are also kept up-to-date in this installation through a
+periodically run script if kept enabled in the crontab.
+</P>
+
+<H4><A NAME="htoc33">3.4.5</A>&nbsp;&nbsp;Globule monitoring web interface</H4>
+<P>
+Monitoring data specific to Globule can be accessed through a web-interface.
+A globule-enabled server provides a single address for all the web-sites
+within Globule's control hosted by the server, which is accessible at the URL
+specified by the GlobuleAdminURL directive.
+</P>
+<P>
+A normal installation will have a default set of pages installed at this
+location when Globule has been compiled with the <TT>--enable-globuleadm</TT>
+arguments. If you installed using Globule using the automatic installer then
+the administration pages are always installed. They are not installed for
+RPM-based installations. These pages can be customized at will as they are
+not embedded within the server, but communicate with Globule to obtain the
+monitoring information.
+</P>
+<P>
+The uncustomized pages will show a menu to the different subjects at the top
+of the pages. Since the pages evolve with each release this documentation
+does not strive to give a detailed walk-through. Rather, this documentation
+only explains the rough outline. The pages themselves describe their
+individual functionality.
+</P>
+<P>
+What the administration pages provide is:
+</P>
+<P>
+<UL><LI>
+Generic data about which version of Globule is installed, what
+extensions are available (such as PHP) and how much global resources are in
+use.
+<LI>A summary of error messages and diagnostics information.
+<LI>A listing of all web-sites which are under the control of Globule at
+this server. This includes sites for which this server plays the role of
+origin, replica or redirector.<BR>
+<BR>
+When replicating only certain parts of a web-site (multiple GlobuleReplicate
+on directives within the same ServerName for different paths), it will list
+each path from which a site is being replicated individually.
+For this reason the web interface refers to these as <EM>sections</EM> of the
+server in which Globule plays a role. Additionally, a section can also be a
+Globule-replicated database as discussed in the section on dynamic content.
+</UL>
+</P>
+<P>
+For each section defined you can browse through details such as:
+<UL><LI>
+The other servers which with this web-server is connected for this
+web-site, these are called the <EM>peers</EM>. Such as if this server is the
+origin of this web-site, all the servers which play the role of replica
+server. Of interest here is mainly if these servers are available to help
+your server host your web-content.
+<LI>The recent accessed documents and their current status.
+<LI>A report of the accesses as made by webalizer if Globule had been
+installed through the automated installer.
+</UL>
+</P>
+<A NAME="toc12"></A>
+<H3><A NAME="htoc34">3.5</A>&nbsp;&nbsp;<A NAME="sec:dyncontent"></A>
+ Dynamically generated content</H3>
+<P>
+Dynamically-generated content allows the pages of a web site to be more
+functional by returning content specifically of interest to the browsing user,
+such as the results of a search function for example. Therefore web-sites
+with dynamic content will and are becoming more predominant.
+</P>
+<P>
+Dynamic content is defined as documents which are not literally stored as
+files, but generated as the result of a program execution each time the page
+is being requested by a browser. Despite their names DHTML and flash
+content are not dynamic content, as the same content is served to every
+browser. It is just displayed by the browser differently.
+</P>
+<P>
+For a web server, delivering dynamic content is different than static content
+because after locating the URL-related resource it needs to invoke a program
+to transform the plain resource to generate the actual content to be passed to
+the browser. An interpreter takes the URL-related resource and executes it.
+This can in turn result in accessing additional resources such as files and
+databases before the result is passed to the browser. Globule also provides
+solutions for executing these web-applications distributedly.
+</P>
+<P>
+Globule enables the replication of dynamic content based on PHP scripts
+without any structural changes of the content. It works in the following way:
+</P>
+<P>
+<UL><LI>
+It replicates the sources used to generate dynamic content rather than
+replicating the generated content;
+<LI>It recursively fetches other resources required by the script being
+interpreted to make them available at replica servers.
+</UL>
+</P>
+<P>
+This is a much more advanced method of replication than mirrors or caching
+proxies, and much easier to convert to than complicated distributed
+environments. However there are some limitations of the current
+implementation of dynamic content replication:
+<UL><LI>
+It only works for PHP scripts. Other dynamic document generation
+techniques such as Perl and servlets are not supported;
+<LI>Scripts which must undergo some small changes;
+<LI>It does not support the usage of backup servers to replicate data at
+this time;
+<LI>PHP must be configured in safe mode, and references to resources should
+be relative and within the exported URL path;
+<LI>Changes to plain data files are currently not sent back to the origin
+server (this may be improved in future releases);
+<LI>It only supports access to the most common functions of the MySQL-style
+database interface in PHP.
+</UL>
+</P>
+<P>
+To get replication of dynamic content operational you need to:
+<UL><LI>
+compile and add PHP support to Apache;
+<LI>instrument your PHP pages to inform Globule about the usage
+ of sub-resources and databases;
+<LI>instruct Globule on how to contact the database in the <CODE>httpd.conf</CODE>
+ configuration file.
+</UL>
+</P>
+
+<H4><A NAME="htoc35">3.5.1</A>&nbsp;&nbsp;Adding PHP support to Apache</H4>
+<P>
+With PHP, the content is generated by an interpreter program, which is a
+separate software which plugs into the Apache server and must therefore be
+installed and configured too.
+</P>
+<P>
+If you used the automatic installer, PHP support should be present already and
+the <CODE>httpd.conf</CODE> configuration file have PHP enabled.
+</P>
+<P>
+If you need to add PHP support or want to check whether PHP is enabled in your
+configuration, this section provides some guidelines on the way Globule
+expects PHP to be installed. Since the addition on PHP support is not
+directly related to Globule we refer to the
+<A HREF="http://www.php.net/manual/en/install.php">official documentation</A>
+for a full PHP installation reference.
+</P>
+<P>
+Basic installation and configuration of PHP is relative simple, but since PHP
+can be installed and configured so diversely, be aware that incompatibility
+can arise when diverting from the expected installation. We therefore
+strongly suggest to use the all-in-one installation which provides a standard
+installation. The automatic installer and Globule Broker System also provide
+the right settings in the <CODE>httpd.conf</CODE> file for usage with Globule.
+</P>
+<P>
+If you use the installer and answered ``Yes'' to include MySQL support you
+already have dynamic content support and you can continue with
+section&nbsp;<A HREF="#sec:dyncontent:usage">3.5.2</A> on using Globule support in PHP. If you
+used the installer without MySQL support, then you will be able to use PHP
+scripts but database drivers will not be compiled. Contact us if you need to
+overcome this. If you installed Globule from source, read
+Section&nbsp;<A HREF="doc003.html#sec:install:php">2.3.2</A> on how to install PHP from source.
+</P>
+
+<H4><A NAME="htoc36">3.5.2</A>&nbsp;&nbsp;<A NAME="sec:dyncontent:usage"></A>
+ Using Globule support in PHP</H4>
+<P>
+Globule will take care of the replication of the PHP source files to replica
+servers. However, the PHP programs do have to be modified and provide some
+additional information to Globule.
+</P>
+<P>
+The modifications to the original PHP pages for a Globule environment have to
+do with telling Globule that one PHP page actually <EM>requires</EM> another PHP
+page, data file or database entries to be present. Globule can then also make
+sure these are present on the local server and point the PHP page to the right
+location for the specific replica server.
+</P>
+<P>
+The modifications to your PHP pages are:
+</P>
+<P>
+<UL><LI>
+You must put the following line in the beginning of all your PHP pages:
+<PRE>
+&lt;?PHP eval(stripslashes($_SERVER["GLOBULE_PHPSCRIPT"])); ?&gt;
+</PRE><LI>For all instances of the statements <CODE>require</CODE>, <CODE>require_once</CODE>,
+<CODE>include</CODE>, <CODE>include_once</CODE>, etcetera wrap the argument in a call to
+the <TT>globule(<I>...</I></TT><TT>)</TT> function. For example:
+<PRE>
+require "includedpage.php";
+</PRE>must become:
+<PRE>
+require globule("includedpage.php");
+</PRE>If you open data files read-only, you should wrap the first argument
+representing the filename also in a call to the <TT>globule()</TT>
+function. However, do this only if this is a local file, not if the
+open is called with an URL.
+</UL>
+</P>
+
+<H4><A NAME="htoc37">3.5.3</A>&nbsp;&nbsp;<A NAME="sec:dynamicdb"></A>MySQL query caching with Globule</H4>
+<P>
+In many cases, PHP pages must access a database to produce a result.
+In such setups, the simplest setup is to let Globule replicate the PHP
+code, but keep the database centralized. This setup, often called
+edge-side computing, may however prove quite inefficient if the
+performance bottleneck lies in the database. One of Globule's most
+innovative features allows programmers to design their PHP/MySQL
+applications such that database query results are cached at the
+replica servers. This system can greatly improve the overall system's
+performance&nbsp;[<A HREF="doc010.html#swami2005c"><CITE>3</CITE></A>].
+</P>
+<P>
+Configuring Globule to cache MySQL query results requires:
+</P>
+<P>
+<UL><LI>
+to update the database-related statements in the PHP code;
+<LI>and to update the Apache configuration file of the origin and
+ replica servers.
+</UL>
+</P>
+<P>
+Note that this setup currently works only for MySQL databases; also,
+the use of backup servers is not supported so no page can be delivered
+while the central database is unreachable.
+</P>
+
+<H5>Updating PHP pages</H5>&nbsp;<BR>
+<P>
+To make use of database query caching, PHP pages must be edited in the
+following way:
+</P>
+<P>
+<UL><LI>
+All PHP calls to the MySQL driver in the form of
+<TT>mysql_<I>...</I></TT> must be rewritten as <TT>globule_mysql_</TT>.
+Thus for example:
+<PRE>
+mysql_connect("localhost","master","");
+</PRE>must become:
+<PRE>
+globule_mysql_connect("localhost","master","");
+</PRE><BR>
+<BR>
+<LI>After any call that determins the database being used (i.e.,
+ <TT>globule_mysql_connect</TT> and/or
+ <TT>globule_mysql_select_db</TT>), you must insert a call to
+ <TT>globule_mysql_reattach</TT>. The argument in this statement is
+ described in section&nbsp;<A HREF="#sec:dynamicdb">3.5.3</A> and represents a
+ Globule-specific URL for the database. A good name might be
+ <TT>db-<I>database</I></TT>, where <TT>database</TT> is the
+ database name of being connected to. For example:
+<PRE>
+globule_mysql_connect("localhost","master","");
+globule_mysql_select_db("globecbc");
+globule_mysql_reattach("db-globecbc");
+</PRE><LI>Furthermore, when using MySQL, you must replace the usage of
+ <TT>mysql_query</TT> with the usage of
+ <TT>globule_mysql_execute</TT> and declare the queries being made
+ first, as described next.
+</UL>
+</P>
+
+<H5>Usage of query templates</H5>&nbsp;<BR>
+<P>
+For Globule to handle cached database queries correctly, it is
+necessary to declare all queries before they can be use by your PHP
+scripts. The usage of <TT>mysql_query</TT> is therefore not directly
+possible. Instead, any query you want to execute first needs to be
+stored before it can be used. This procedure is similar to the
+prepared statement interface in the improved PHP MySQL interface, and
+many other modern database interfaces.
+</P>
+<P>
+Instead of building the string representing the query and executing
+it, such as in:
+</P>
+<PRE>
+for($i=0; $i&lt;10; $i++) {
+  $query = "select * from t where t.id &gt; " + $i + " and t.rel = 4";
+  mysql_query($query)
+  ...
+</PRE>
+<P>
+We instead will first declare a template of the query:
+</P>
+<PRE>
+globule_mysql_declare("myquery","select * from t where t.id &gt; ? and t.rel = 4");
+</PRE>
+<P>
+These declare statements should be inserted after any call to the relevant
+<TT>globule_mysql_attach</TT> statement. The above statement <EM>declares</EM>
+a named statement ``myquery'', where certain parts may be filled in when the
+query is later executed. These yet unspecified, formal arguments are denoted
+with a question mark <CODE>?</CODE>.
+</P>
+<P>
+The query can then be executed, where there used to be a call to
+<TT>mysql_query</TT> using a call to <TT>globule_mysql_execute</TT>, which
+instead of using the full query, just uses the query name:
+</P>
+<PRE>
+globule_mysql_execute("myquery", array($i));
+</PRE>
+<P>
+The first argument represents the query name, and the second argument is an
+array of all values to be instantiated for the formal argument in the query
+template, as denoted with question marks.
+</P>
+
+<H5>Configuring Globule for Database Query Caching</H5>&nbsp;<BR>
+<P>
+Now, you also need to update the <CODE>httpd.conf</CODE> configuration files
+of your origin and replica servers.
+</P>
+<P>
+Suppose that, before updating your PHP scripts you had the following
+MySQL connection sequence:
+</P>
+<PRE>
+mysql_connect("localhost","master","");
+mysql_select_db("globecbc");
+</PRE>
+<P>
+This would make a contact to the database running on the localhost server,
+using username ``master'' and with an empty password using the database
+``globecbc''.
+</P>
+<P>
+To make this database reachable from the replica servers, we need to update
+the configuration of the origin server, such that a HTTP based interface for
+queries to the database:
+</P>
+<PRE>
+  &lt;VirtualHost *&gt;
+    ServerName origin.revolutionware.net
+  ...
+    &lt;Location /&gt;
+      GlobuleReplicate on
+      GlobuleReplicaIs http://replica.revolutionware.net/  sharedpassword
+  ...
+    &lt;/Location&gt;
+    &lt;Location /db-globecbc&gt;
+      GlobuleDatabase mysql://master@localhost/globecbc dbsharedpassword
+    &lt;/Location&gt;
+  ...
+</PRE>
+<P>
+The database identified by the URL <CODE>mysql://master@localhost/globecbc</CODE>
+indicates the same identification as used in the <TT>mysql_connect</TT> and
+<TT>mysql_select_db</TT> call. If the password to the database would not be
+empty then use a hash sign after the username in the URL, as is the standard
+format for URLs (e.g., <CODE>mysql://master#password@localhost/globecbc</CODE>).
+</P>
+<P>
+The password <TT>dbsharedpassword</TT> does <EM>not</EM> represent database
+password, but a password that each replica server must know to be allowed to
+issue requests to the database through the origin server.
+</P>
+<P>
+Now, replica servers can access your database via the URL
+<CODE>http://origin.revolutionware.net/db-globecbc/</CODE>. The path
+<TT>db-globecbc</TT> must be the same as specified in the
+<TT>globule_mysql_reattach</TT> statements of your PHP scripts.
+</P>
+<P>
+If your scripts use multiple databases, then you can repeat this with
+different names. Make sure the same name is not used twice for different
+databases!
+</P>
+<P>
+Replica servers should define a similar connection, under the same path.
+However, instead of specifying the URL with the actual MySQL database,
+the URL of the HTTP interface of the origin server is specified as such:
+</P>
+<PRE>
+  &lt;VirtualHost *&gt;
+    ServerName replica.revolutionware.net
+  ...
+    &lt;Location /&gt;
+      GlobuleReplicaFor http://origin.revolutionware.net/ sharedpassword
+    &lt;/Location&gt;
+    &lt;Location /db-globecbc&gt;
+      GlobuleDatabase http://origin.revolutionware.net/db-globecbc dbsharedpassword
+    &lt;/Location&gt;
+  ...
+</PRE>
+<P>
+There is just a single shared password amongst all replica-servers at the
+current implementation. The <TT>/db-globecbc</TT> location path can be freely
+chosen, but must match in the origin definition, replica definition and PHP
+script.
+</P>
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <HR>
+<A HREF="doc003.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc005.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

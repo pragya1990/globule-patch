@@ -1,0 +1,43 @@
+#!/bin/sh -x
+
+APXS=/home/berry/globule/globule/../apache/bin/apxs
+BINDIR=`$APXS -q BINDIR`
+
+PREFIXDIR=`$APXS -q PREFIX`
+SYSCONFDIR=`$APXS -q SYSCONFDIR`
+CONFFILE=$SYSCONFDIR/httpd.conf
+SERVERNAME=`grep -v \# $CONFFILE | grep ServerName | awk '{print $NF }'`
+SLAVEKEYSFILE=`grep -v \# $CONFFILE | grep PsodiumMasterSlaveKeys  | awk '{print $NF }'`
+TEMPDIR=`grep -v \# $CONFFILE | grep PsodiumTempStorageDir  | awk '{print $NF }'`
+AUDPASSWD=`grep -v \# $CONFFILE | grep PsodiumMasterAuditor | awk '{print $NF }'`
+
+ERRORLOG=`grep -v \# $CONFFILE | grep ErrorLog | awk '{print $NF }'`
+LOGDIR=`dirname $PREFIXDIR/$ERRORLOG`
+AUDITORLOG=$LOGDIR/psodium-auditor_log
+
+echo Auditor logging to $AUDITORLOG
+
+if [ "$TEMPDIR" = "" ];
+then
+	TEMPDIR=`$APXS -q PREFIX`/psodium-temp/
+fi
+
+ARGV="$@"
+case "$ARGV" in
+start)
+    ($BINDIR/auditor $SERVERNAME $SLAVEKEYSFILE $TEMPDIR $LOGDIR "$AUDPASSWD" > $AUDITORLOG 2>&1 &)
+    ERROR=$?
+    ;;
+stop)
+    kill `cat $LOGDIR/psodium-auditor.pid`
+    ERROR=$?
+    ;;
+restart)
+    $0 stop
+    $0 start
+    ;;
+*)
+    echo 'Usage: auditor-ctl start|stop|restart'
+esac
+
+exit $ERROR

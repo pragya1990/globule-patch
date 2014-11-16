@@ -1,0 +1,893 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+<TITLE>
+Globule User Manual: 2  Globule Installation
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="doc002.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc004.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+<H2><A NAME="htoc5">2</A>&nbsp;&nbsp;<A NAME="sec:install"></A>Globule Installation</H2>
+<P>
+Globule adds replication functionality to the Apache web-server. There are
+multiple ways to install Globule, Apache and additional optional software.
+The normal installation procedure is the all-in-one package under Unix and
+Linux (see Section&nbsp;<A HREF="#sec:install:installer">2.1</A>), or the Windows installer (see
+Section&nbsp;<A HREF="#sec:install:winexe">2.2</A>).
+</P>
+<P>
+In a number of special cases, it might be preferable to install Globule by
+other means, such as if you want to add replication features to an already
+existing Apache installation, you have a minimalistic system without compilers
+or you want to rely on installation paths or packaging methodology of your
+system. Section&nbsp;<A HREF="#sec:install:source">2.3</A> explains how to install Globule by
+hand from source, while Section&nbsp;<A HREF="#sec:install:rpm">2.4</A> explains how to install
+pre-compiled RPMs. Beware however that installing Globule by hand from
+sources or by using pre-compiled RPMs requires:
+</P>
+<P>
+<UL><LI>
+that you are knowledgeable enough to edit Apache configuration files by
+ hand;
+<LI>that you understand how to select the right package based on the
+ requirements you have;
+<LI>know how to run the auto-configure script <TT>configure</TT> when
+ compiling from source.
+</UL>
+</P>
+<P>
+After having installed Globule, refer to section&nbsp;<A HREF="doc004.html#sec:conf">3</A> on how to
+configure it.
+</P>
+<A NAME="toc4"></A>
+<H3><A NAME="htoc6">2.1</A>&nbsp;&nbsp;<A NAME="sec:install:installer"></A>
+ Unix and Linux All-in-one installation</H3>
+<P>
+The all-in-one installation is a bundling of Globule and all the necessary
+third-party software which installs in a single run.
+This facilitates a standardized environment which works on a multitude of
+systems. The following software packages are included:
+</P>
+<P>
+<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=1>
+<TR><TD ALIGN=left NOWRAP>Apache</TD>
+<TD ALIGN=left NOWRAP>The web-server software.</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>Globule</TD>
+<TD ALIGN=left NOWRAP>The module for Apache to replicate web-sites.</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>PHP</TD>
+<TD ALIGN=left NOWRAP>A scripting language to generate dynamic pages for Apache.</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>Smarty</TD>
+<TD ALIGN=left NOWRAP>PHP scripts by which PHP can use templates.</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>MySQL</TD>
+<TD ALIGN=left NOWRAP>A database system.</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>Webalizer</TD>
+<TD ALIGN=left NOWRAP>Package to generate statistics on the visit of your web-site.</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>GD library</TD>
+<TD ALIGN=left NOWRAP>library helping PHP and Webalizer to generate graphics.</TD>
+</TR></TABLE>
+</P>
+<P>
+The copyright notices of these packages are included in
+Appendix&nbsp;<A HREF="doc008.html#sec:copyrights">A</A>.
+</P>
+<P>
+To obtain maximum portability to different platforms and Linux distributions,
+the installer actually compiles the software packages from source.
+Installation therefore takes a bit of time, consumes some disk space and
+requires supporting software such as C and C++ compilers to be present.
+Modern systems should have sufficient amount of resources such that a default
+installation on a fully installed distribution can be done within an
+acceptable amount of time. Actual time and resource need will vary on your
+system, a typical fairly recent system requires between 5 and 15 minutes and
+between 100 and 250 MB of (temporary) disk space to install for a full
+installation.
+</P>
+<P>
+Downloaded the all-in-one installer from the web-site of Globule, and execute
+it as follows:
+</P>
+<PRE>
+wget 'http://www.globule.org/download/installer.sh'
+chmod u+x installer.sh
+sh ./installer.sh --keep-build
+</PRE>
+<P>
+The all-in-one installer will do the full installation automatically after you
+have confirmed certain settings which are probed by the installer. The
+end-result after the installation is a fully capable web-server, installed in
+an independent, private directory. You are free to choose this directory as
+long as it fits the following requirements:
+<OL type=1><LI>
+the directory is unused and empty or non-existent;
+<LI>it resides on a local disk.
+</OL>
+</P>
+<P>
+Good alternatives for this directory are <CODE>/usr/local/globule</CODE>,
+<CODE>/home/globule</CODE> or <CODE>/opt/globule</CODE> depending on your system. If you
+have a desktop system, we suggest you choose the default provided by the
+installer, as indicated by the content in the square brackets. Enter nothing
+and press return to accept the default.
+</P>
+<P>
+Other questions the installer asks are about checking the probed hostname of
+the system and whether or not to include MySQL support. The provided defaults
+should be correct. Including MySQL support is recommended, and can co-exist
+with a system-wide MySQL. Including MySQL support will install a database
+available only from the web-server, but takes a relatively long time to build.
+If you want to use a system-wide MySQL or do not need a database you can
+answer ``No'' to this question.
+</P>
+<P>
+When the installer script has finished all files are installed in the target
+directory that you specified. This directory is named the prefix or
+base-directory. A transcript of the installation is written in
+<TT><I>basedir</I></TT><TT>/src/installer.log</TT> We advice you to remove the
+installer script you just used, to avoid accidental re-use.<BR>
+Be aware that if you will later upgrade, entire directories are removed from
+this tree. Read the section on upgrading to understand where you can your
+files safely.
+</P>
+<P>
+After installation, you should use the <TT>globulectl</TT> script to start not
+just the Apache/Globule software, but also the accompanying software:
+</P>
+<PRE>
+<i>basedir</i>/bin/globulectl start
+</PRE>
+<P>
+At this time, the all-in-one installer will not automatically start the
+software when the computer is restarted. You can execute the following
+script:
+</P>
+<PRE>
+<i>basedir</i>/bin/globulectl installcrontab
+</PRE>
+<P>
+to install a crontab, which is a periodic check whether the web-server is
+running, looks really operational and has been restarted since the last time
+the <CODE>httpd.conf</CODE> configuration file was updated. If this is not the case
+then it will cleanly restart the server.
+</P>
+<P>
+Once the installation is completed, your server will be ready to operate using
+a few example documents. To host your own documents, you will have to defined
+how and where to replicate (parts of) your web-server. Section&nbsp;<A HREF="doc004.html#sec:conf">3</A>
+describes how to configure your web-server. The configuration of the
+web-server is stored for this all-in-one installer in the file
+<B><TT><I>basedir</I></TT></B><B><TT>/etc/httpd.conf</TT></B>. Other configuration files
+are all located in that same directory.
+</P>
+
+<H4>Upgrading your installation</H4>
+<P>
+The installer script can be used to upgrade the complete installation
+(including supporting software) at later times to the most recent release. To
+this end, when the installer script finishes, a modified copy of the installer
+script is created as <TT><I>basedir</I></TT><TT>/src/installer.sh</TT>. This script,
+not the original, should be used to upgrade and should be run with the same
+flags as earlier.
+</P>
+<P>
+If in the initial installation the flag <CODE>--keep-build</CODE> was used,
+non-updated software packages will be reused in the installation because
+intermediate files are kept. This limits the time needed to upgrade, at the
+cost of a some extra disk-space.
+Subsection&nbsp;<A HREF="#sec:install:installer:advanced">2.1</A> states some more flags and
+checks that can be made on the system, which are only needed in advanced
+setups.
+</P>
+<P>
+Be aware however that during upgrading, the script will <EM>remove</EM> certain
+directories and files from the basedir. Only <TT>htdocs</TT>, <TT>htbin</TT>
+and directories with dots in them are kept untouched. Directories
+<TT>src</TT>, <TT>etc</TT> and <TT>var</TT> are largely kept as is. Other
+directories are removed.
+</P>
+<P>
+If you create additional directories to hold files of created
+VirtualHosts/web-sites and upgrade, they could be whiped out when you upgrade
+because this script will only keep certain directories. This is why
+directories with dots in them are never deleted, so you can use the domain
+name of the web-site as the directory name to use as DocumentRoot.
+</P>
+<P>
+<EM>To avoid data loss, always backup the whole installation before
+upgrading.</EM>
+</P>
+
+<H4><A NAME="sec:install:installer:advanced"></A>
+ Installer advanced usage and troubleshooting</H4>
+<P>
+Most users do not need to read this section, and can safely move to
+section&nbsp;<A HREF="doc004.html#sec:conf">3</A> on how to configure Globule.
+</P>
+
+<H5>Prerequisite software</H5>&nbsp;<BR>
+<P>
+The installer script is very useful, even if your Linux distribution is
+RPM-package based. This because the installer script installs everything
+together in a single location with a standard set of features. However, since
+it is not tied to the specific distribution you are using, it does not check
+on the prerequisite software. Instead it bundles most necessary software
+within the installer. In very minimal setups however, such as supplied by
+ISPs where even compilers aren't installed, you might need to check whether
+the RPMs below are installed on your system.
+</P>
+<P>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP>which</TD>
+<TD ALIGN=left NOWRAP>gd</TD>
+<TD ALIGN=left NOWRAP>libpng-devel</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>dialog</TD>
+<TD ALIGN=left NOWRAP>expat-devel</TD>
+<TD ALIGN=left NOWRAP>openssl-devel</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>strace</TD>
+<TD ALIGN=left NOWRAP>pcre-devel</TD>
+<TD ALIGN=left NOWRAP>flex</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>gdb</TD>
+<TD ALIGN=left NOWRAP>db4-devel</TD>
+<TD ALIGN=left NOWRAP>libxml2-devel</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>libtool</TD>
+<TD ALIGN=left NOWRAP>gdbm-devel</TD>
+<TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP>gcc-c++</TD>
+<TD ALIGN=left NOWRAP>perl-DBD-MySQL</TD>
+<TD ALIGN=left NOWRAP>&nbsp;</TD>
+</TR></TABLE>
+</P>
+<P>
+Depending on your distribution, you might be able to check whether a package
+is installed using the command:
+</P>
+<PRE>
+rpm -q <i>package-name</i>
+</PRE>
+
+<H5>Tuning of the installer operation</H5> &nbsp;<BR>
+<P>
+It is not encouraged to install the supporting software of Globule in a
+non-standard way, however if you do want to tune the installation, you can use
+the flag <TT>--extra-<I>package</I></TT><TT>-config=<I>...</I></TT> to add
+additional options to how the <TT>./configure</TT> script is run for a
+particular software packages, where package is one of <TT>httpd</TT> for
+Apache, <TT>php</TT>, <TT>globule</TT>, <TT>mysql</TT>, <TT>gd</TT> or
+<TT>webalizer</TT>.
+</P>
+<P>
+The following other options are user-available:
+<DL COMPACT=compact><DT><DD><TT>-v</TT> or <TT>--verbose</TT><BR>
+Verbose operation, will result in more reporting to the console.<BR>
+<DT><DD><TT>-n</TT> or <TT>--noupdate</TT><BR>
+Do not attempt to retrieve newer software over the Internet (for upgrading
+ only, this is the default for first-time installations).
+<DT><DD><TT>--keep-build</TT><BR>
+Recommended option to keep the compiled objects file in place, instead of
+ removing the compiled source directory after installation.
+</DL>
+</P>
+<P>
+Lastly there are two other options which can be used only when upgrading,
+<TT>--omit-install</TT> allows you to prepare a new version without installing
+it. You should also use the <TT>--keep-build switch</TT>. This way you can
+keep the server running while compilation of a upgraded version takes place.
+Afterwards you can quickly upgrade a version by manually stop the Apache
+server using the globulectl command and running the same command, but now with
+the <TT>--omit-build</TT> switch. This minimizes down time for important
+systems. A typical usage would be:
+</P>
+<PRE>
+cd <i>basedir</i>
+./src/installer.sh --keep-build --omit-install
+./bin/globulectl stop
+./src/installer.sh --keep-build --omit-build
+./bin/globulectl start
+</PRE>
+<A NAME="toc5"></A>
+<H3><A NAME="htoc7">2.2</A>&nbsp;&nbsp;<A NAME="sec:install:winexe"></A>
+ Windows installation</H3>
+
+<H4>1. Requirements</H4>
+<P>
+This explanation assumes that you are using Windows XP with SP2.
+</P>
+<P>
+If possible, please install Apache and Globule with administrator
+privileges. You will need to open ports in your firewall, and only
+Administrators can do that.
+</P>
+
+<H4>2. Run the automated installer</H4>
+<P>
+The Windows auto-installer for Globule is available as
+<A HREF="http://www.globule.org/download/1.3.1/globule-1.3.1.exe">globule-1.3.1.exe</A>.
+It contains a full distribution of Apache, so you don't need to install Apache
+separately.
+</P>
+
+<H4><A NAME="sec:install:win32:step3"></A>
+3. Choose which components to install</H4>
+<P align=center><IMG SRC="glowin1.png"></P>
+
+<P>
+<DL COMPACT=compact><DT><DD><B>Apache:</B> this will install the Apache web server. We check
+ if a suitable Apache installation was found. If not, Apache will be
+ installed. It requires port 80 to be opened in your firewall.<BR>
+You can tell Windows to open port 80, the first time Apache is started, by
+ choosing 'Unblock' in the Windows Security Alert window.
+<DT><DD><B>Globule:</B> the Globule software. This allows the Apache web
+ server to automatically replicate its documents to other servers,
+ keep replicas consistent, and to transparently redirect users to the
+ best replica.
+<DT><DD><B>DNS Redirection:</B> this is the only option you really have
+ here. DNS redirection facility adds support for UDP requests to
+ Apache (see Section&nbsp;<A HREF="doc004.html#sec:conf:dnsredir">3.3</A>). If you don't know what DNS
+ redirection is or you don't own your own domain name, then you probably
+ don't need DNS redirection at all. Using DNS redirection
+ requires that you open port 53 in your firewall.
+</DL>
+</P>
+
+<H4>4. Choose an install location for Globule</H4>
+<P>
+The default installation path is
+ <TT>C:\Program&nbsp;Files\Globule</TT>
+if you install as administrator, or
+ <TT>C:\Documents&nbsp;and&nbsp;Settings\&lt;username&gt;\Globule</TT>
+otherwise. You can change this path if you want Globule installed somewhere
+else.
+</P>
+
+<H4>5. Install Apache</H4>
+<P>
+If Apache is not already present in your system, then it is going to be
+installed now.
+</P>
+<P align=center><IMG SRC="glowin2.png"></P>
+
+<P>
+Click on ``OK'' to start the Apache installer. You will see the following
+screens:
+</P>
+<P>
+<UL><LI>
+<EM>Apache Welcome Screen</EM>: click ``Next'' to continue.
+<LI><EM>Apache License Agreement</EM>: if you accept their terms in the
+ license agreement, check the top radio button and click ``Next'' to
+ continue.
+<LI><EM>Apache Read This First</EM>: after reading, click ``Next'' to continue.
+<LI><EM>Apache Server Info</EM>: Apache will now ask you for
+ information about your web server. <EM>If you are not sure what to
+ fill in here, fill in the values as seen in the screenshot below.</EM>
+ Later, when we generate a configuration file for you.
+ <UL><LI>
+ <EM>Network Domain</EM>: fill in ``localdomain''.
+ <LI><EM>Server Name</EM>: fill in ``localhost''.
+ <LI><EM>Administrator's Email Address</EM>: fill in your e-mail
+ address or ``dummy@globule.org''.
+ <LI><EM>Install Apache HTTP Server 2.0 programs and shortcuts
+ for</EM>: Choose ``for All Users, on Port 80, as a Service --
+ Recommended.''
+ </UL>
+ <P align=center><IMG SRC="glowin3.png"></P>
+
+<LI><EM>Apache Setup Type</EM>: Choose the ``Typical'' setup type. Then
+ click ``Next'' to continue.
+<P align=center><IMG SRC="glowin4.png"></P>
+
+<LI><EM>Destination Folder</EM>: choose a location where Apache is
+ going to be installed, then click ``Next'' to continue. 
+<LI><EM>Ready to Install the Program</EM>: click ``Install'' to start the
+ installation of Apache. 
+<LI><EM>Installation Completed</EM>: if all went well Apache shows that
+ it is successfully installed. Click on ``Finish'' to continue with the
+ Globule installation.
+</UL>
+</P>
+
+<H4>6. Where was Apache installed?</H4>
+<P>
+If you installed Apache for <EM>Current User only</EM>, Globule will need to
+know where Apache was installed. Note that this is not the default way of
+installing Apache, but you know what you are doing, right? Specify the
+directory where the <TT>bin</TT> and <TT>modules</TT> directories are in, e.g.
+<TT>C:\Documents~and~Settings\&lt;username&gt;\Apache Group\Apache2</TT>.
+</P>
+
+<H4>7. Stop existing Apache services</H4>
+<P>
+To be able to install itself, Globule will need to stop the Apache server you
+just installed. If you installed Apache in the default way as described above,
+just press ``OK''. If you installed Apache yourself with a different service
+name (default is 'Apache2'), please stop the Apache service manually or by
+using the Apache Service Monitor. If you had Apache installed for Current
+User, press CTRL-C in the console window where you started Apache.
+</P>
+<P align=center><IMG SRC="glowin5.png"></P>
+
+
+<H4>8. Installation Completed</H4>
+<P>
+Congratulations, all the software is installed. Now Globule needs to be
+configured to be able to use it. Click on ``Finish'' to go to a web-site which
+can help you <A HREF="http://www.globeworld.net/">write your configuration
+file</A>. You can also manually edit the Apache configuration file in Apache's
+conf directory following instructions in section&nbsp;<A HREF="doc004.html#sec:conf">3</A>.
+</P>
+<P align=center><IMG SRC="glowin5.png"></P>
+
+<P>
+When the installation itself has finished, you will be taken to this web-site
+to configure your web server when you you click ``OK''.
+</P>
+<P>
+If you kept the default paths unchanged and installed Globule as Admin, then
+your configuration file must be located at <A HREF="file:///C:/Program
+Files/Apache Group/Apache2/conf/httpd.conf"><TT>C:/Program Files/Apache
+Group/Apache2/conf/httpd.conf</TT></A>. If you installed as non-Admin, then it
+should be in <TT>C:\Documents and Settings\&lt;username&gt;\Apache
+Group\Apache2\conf\httpd.conf</TT>.
+</P>
+<P>
+You can start/stop your server using the Apache service icon on the bottom
+right of your screen. We recommend you use this service icon, which opens the
+Apache Monitor rather then the menu items. This because the menu items do not
+provide all functionality.
+</P>
+
+<H4>9. Configuring your firewall</H4>
+<P>
+If you are using Windows XP, then you must configure your firewall to allow
+your friends to access the server you just installed. Here is how to do it.
+</P>
+<P>
+<UL><LI>
+First, you need to know the IP address of your computer. Click on
+ '<TT>Start -&gt; Run</TT>', and type '<TT>cmd</TT>'. That will open a shell window.
+ Type '<TT>ipconfig</TT>' in it and press enter. You should get output
+ looking like the screenshot below. Keep this window open or write
+ down the IP address.
+</UL>
+<P align=center><IMG SRC="glowin6.jpg"></P>
+
+<UL><LI>
+You can now configure your firewall to allow HTTP requests to
+ enter your system. Click '<TT>Start -&gt; Run</TT>', then type in
+ '<TT>control netconnections</TT>' and click 'OK.' Select the network
+ device you use to connect to the Internet (e.g. Local Area
+ Connection), then click '<TT>Properties</TT>', and the '<TT>Advanced</TT>'
+ tab.<BR>
+<BR>
+Click on the '<TT>Settings...</TT>' button, and enable protect my computer
+ if needed. Click on the '<TT>Advanced</TT>' tab.<BR>
+<BR>
+In the list of Services check '<TT>Web Server (HTTP)</TT>'. A window
+ should pop up (or click on <TT>edit</TT>). Fill in the IP address you
+ got from the first steps and click '<TT>OK</TT>'. If you do not see
+ '<TT>Web Server (HTTP)</TT>' then select the '<TT>Add..</TT>' button, fill
+ in the service name, your IP address and '80' for both external and
+ internal port.<BR>
+<BR>
+<LI>If you enabled DNS redirection in
+ <A HREF="#sec:install:win32:step3">step 3</A>, then you must also allow
+ DNS requests to enter your system. Click the '<TT>Add...</TT>' button.
+ Fill in the service name "DNS" and your IP address where requested,
+ and the other fields as seen in the screenshot below.
+ <EM>Note that '<TT>UDP</TT></EM><EM>' is checked and '<TT>TCP</TT></EM><EM>' is unchecked.</EM>
+</UL>
+<P align=center><IMG SRC="glowin7.jpg"></P>
+
+<UL><LI>
+Congratulations, you have configured your firewall. From now on,
+ any user connected to the Internet can access your Globule server.
+</UL>
+</P>
+<A NAME="toc6"></A>
+<H3><A NAME="htoc8">2.3</A>&nbsp;&nbsp;<A NAME="sec:install:source"></A>
+ Source distribution</H3>
+<P>
+This section is intended for people with some experience in compiling
+programs. Compilation from source allows you to make the best
+match with your system, tune the installation and allows for special demands.
+This is especially suited for package builders and somewhat experienced system
+administrators.<BR>
+To compile Globule under Windows you will have to
+<A HREF="mailto:globule@globule.org">contact us</A>.
+</P>
+<P>
+Before starting to build Globule from source you have to check the
+requirements and determine whether your installation needs to do DNS-based
+redirection.
+</P>
+<P>
+<EM>First</EM> determine if you might want to do DNS redirection. DNS
+redirection allows clients to be redirected at the DNS level to one of the
+available replica servers (see Section&nbsp;<A HREF="doc004.html#sec:conf:dnsredir">3.3</A> for more
+information on HTTP vs. DNS redirection). This is the fastest, more
+distributed and most transparent redirection method available. It does
+however require Globule and Apache to act as an DNS server, which is only
+possible if you run a slightly modified Apache server, which requires
+recompiling Apache also.
+</P>
+<P>
+Other requirements:
+<UL><LI>
+<A HREF="http://httpd.apache.org/">A</A>pache version 2.0.50 or higher.
+ Note that versions 2.1 and 2.2.x are not yet supported;
+<LI>Apache running with a worker or prefork MPM, with dynamic modules
+ enabled (these are defaults);
+<LI><A HREF="http://gcc.gnu.org/">gcc and g++</A> version 3.2 or better.
+ There are known problems with gcc 3.4.0, gcc-4.0.x is known to work; 
+<LI><A HREF="http://www.fsf.org/software/make/">gmake</A> version 3.79.1 or
+ better.
+</UL>
+</P>
+<P>
+You should also preferably install Apache from source. If you want to install
+Apache from RPMs and require DNS redirection then you <EM>must</EM> use our
+supplied RPMs which include the patch. If using RPMs not provided by us, make
+sure you also install the developer packages for Apache and APR (httpd-devel
+and apr-devel).
+</P>
+<P>
+Because Globule is a module for Apache, you should install Apache first,
+following the guidelines in the next section.
+</P>
+
+<H4><A NAME="htoc9">2.3.1</A>&nbsp;&nbsp;Apache installation from source</H4>
+<P>
+Apache can be set-up, configured and extended through modules in a multitude
+of fashions. These, even in an environment without Globule can clash, lead to
+security issues, or other issues. It is therefore prudent for us to give some
+advice on which configuration of Apache is known to work. Globule is also
+known to work with the Apache installation from the major Linux distributions.
+</P>
+<P>
+To install Apache from source download Apache from:<BR>
+<BLOCKQUOTE>
+<A HREF="http://www.globule.org/download/apache-2.0.55/httpd-2.0.55.tar.gz">httpd-2.0.55.tar.gz</A>
+</BLOCKQUOTE>
+</P>
+<P>
+Unpack the downloaded distribution:
+</P>
+<PRE>
+gzip -c -d &lt; httpd-2.0.55.tar.gz | tar xvf -
+cd httpd-2.0.55
+</PRE>
+<P>
+If you decided to enable DNS redirection in your server, then you need to
+patch your Apache source tree <EM>before</EM> configuring and compiling it. The
+patch file is distributed in the
+<A HREF="http://www.globule.org/download/1.3.1/mod-globule-1.3.1.tar.gz">mod-globule-1.3.1.tar.gz</A>
+Globule source package as file <TT>udp-requests-httpd-2.0.55.patch</TT>.
+Copy this file from the Globule archive into the Apache source tree and then
+execute:
+</P>
+<PRE>
+patch -p0 &lt; udp-requests-httpd-2.0.55.patch
+</PRE>
+<P>
+Then configure and compile Apache according to the
+<A HREF="http://httpd.apache.org/docs-2.0/install.html">Apache documentation</A>.
+The minimum you should specify is the <TT>--enable-so</TT> option to allow
+extension of Apache with modules. We however recommend the following sequence
+on the configuration script:
+</P>
+<PRE>
+./configure --prefix=/usr/local/globule --enable-auth-anon=shared 
+    --enable-auth-dbm=shared --enable-cache=shared --enable-file-cache=shared 
+    --enable-disk-cache=shared --enable-mem-cache=shared --enable-example=shared 
+   --enable-deflate=shared --enable-ssl --enable-proxy=shared 
+   --enable-proxy-ftp=shared --enable-proxy-http=shared 
+   --enable-proxy-connect=shared --enable-expires=shared --enable-headers 
+   --enable-mime-magic --enable-http --disable-dav --enable-status=shared 
+   --enable-asis=shared --enable-suexec=shared --enable-info=shared 
+   --enable-cgi=shared --enable-include=shared --enable-vhost-alias=shared 
+   --enable-rewrite=shared
+</PRE>
+<P>
+Then call <CODE>make install</CODE> to compile and install Apache in the designated
+target directory as specified by <TT>--prefix</TT>. If the <TT>bin</TT>
+directory of this prefix is not in your executable search <CODE>$PATH</CODE>, or
+another Apache is installed first then you will need to use either the
+<CODE>--with-apache</CODE> or <CODE>--with-apxs</CODE> later when compiling Globule.<BR>
+If Apache is installed using a <CODE>--with-layout</CODE> instead of a
+<CODE>--prefix</CODE> and/or individual paths have set to split the different items
+(such as APR, apr-util and libexec directories) then you are advised to use
+the <CODE>--with-apxs</CODE> and <CODE>--with-apr</CODE> flags.
+</P>
+
+<H4><A NAME="htoc10">2.3.2</A>&nbsp;&nbsp;<A NAME="sec:install:php"></A>Globule installation from source</H4>
+<P>
+To compile Globule from source after having installed Apache with optionally
+the DNS redirection patch you can use the compressed tar-archive available at:
+<BLOCKQUOTE>
+<A HREF="http://www.globule.org/download/1.3.1/mod-globule-1.3.1.tar.gz">mod-globule-1.3.1.tar.gz</A>
+</BLOCKQUOTE>
+</P>
+<P>
+Unpack this archive, and read the <TT>README</TT>, <TT>INSTALL</TT> and
+<TT>NEWS</TT> file for any last-minute release notes that may have been added:
+</P>
+<PRE>
+gzip -c -d &lt; mod-globule-1.3.1.tar.gz | tar xvf -
+cd mod-globule-1.3.1
+</PRE>
+<P>
+As usual, first call <CODE>./configure</CODE> as supplied with most open source
+projects and available with the standard options. If you however installed
+Apache in a non-standard path, then you must specify this path using the
+<TT>--with-apache</TT> option when running configure. Note that you must specify
+the <EM>root</EM> Apache directory (e.g., <TT>/usr/local/globule</TT>) rather than
+the directory where the Apache executable resides (e.g.,
+<TT>/usr/local/globule/bin</TT>). If you used the <TT>--prefix</TT> option to
+specify a path when installing Apache, then you must use the same path here as
+well.
+</P>
+<P>
+Alternatively to the <TT>--with-apache</TT> option, you can also use
+<TT>--with-apxs</TT> to specify the absolute path where the <TT>apxs</TT> program is
+installed. This file is usually located in the same directory as <TT>httpd</TT>
+and <TT>apachectl</TT>:
+</P>
+<PRE>
+./configure --with-apxs=/weird/directory/bin/apxs
+</PRE>
+<P>
+If you want to use DNS redirection, then you must add the
+<TT>--enable-dns-redirection</TT> flag to <TT>configure</TT>:
+</P>
+<PRE>
+./configure --with-apache=/usr/local/globule --enable-dns-redirection
+</PRE>
+<P>
+We also recommend to use the <CODE>--enable-globuleadm</CODE>
+flag. This installs a set of files in the directory <TT>globuleadm</TT>
+inside the directory as indicated by <TT>apxs -q htdocsdir</TT> which allow
+you to monitor the operation of Globule.
+</P>
+<P>
+Other options available are:
+<DL COMPACT=compact><DT><DD><TT>--enable-debug</TT><BR>
+Compile Globule with debugging symbols and options enabled.
+<DT><DD><TT>--enable-optimize</TT><BR>
+Use optimization to compile Globule, recommended.
+<DT><DD><TT>--enable-profile</TT><BR>
+Compile Globule with profiling enabled (not recommended, does not work
+ reliably).
+<DT><DD><TT>--enable-documentation</TT><BR>
+Also build and install documentation (not recommended, read it on-line).
+</DL>
+</P>
+<P>
+After running the <TT>./configure</TT> script with the appropriate options,
+run ``make'' and ``make install''. This last command will install the Globule
+software and also install a sample Globule configuration file named
+<TT>httpd-globule.conf</TT> next to the regular <CODE>httpd.conf</CODE> file (in the
+directory as specified by <TT>apxs -q sysconfdir</TT>). Use it as an example
+of how to configure the <CODE>httpd.conf</CODE> for use with Globule.
+</P>
+
+<H4><A NAME="htoc11">2.3.3</A>&nbsp;&nbsp;PHP installation from source</H4>
+<P>
+To compile PHP yourself, you must make sure that you instruct PHP with the
+configure script to use the apxs2filter as the Apache to PHP hand-off and that
+safe mode is enabled. If you install Apache in a non-default path (using the
+--prefix option), make sure the PHP is actually configured to use the right
+installation of Apache.
+</P>
+<P>
+You should be very aware that the PHP pages will be executed on multiple
+servers.
+PHP is compiled with certain extensions depending on how it was configured.
+If you make your PHP pages depend on a certain set of extensions then all
+replica servers should have the same set of extensions. For this reason the
+all-in-one installer and Globule Broker System are preferred.
+</P>
+<P>
+The recommended configuration for compilation of PHP is:
+</P>
+<PRE>
+./configure --prefix=$prefix --with-apxs2filter=<i>prefix</i>/bin/apxs --disable-cgi 
+            --disable-static --enable-safe-mode --enable-dba --with-dbase --with-gdbm 
+            --with-db4 --with-ini --with-flatfile --with-gd=<i>...</i> --enable-ftp 
+            --with-mysql=<i>...</i> --with-mysqli=<i>...</i>/bin/mysql_config 
+</PRE>
+<P>
+Where <I>prefix</I> is the base installation path of Apache and
+<I>...</I> are the paths to the individual software packages being
+referred to, which default to <I>prefix</I> for the use with the all-in-one
+installer.
+</P>
+<P>
+When compiling and installing PHP, it will modify your existing
+<CODE>httpd.conf</CODE> to add directives to enable PHP parsing. This may not
+completely be what you want so save a copy of the original <CODE>httpd.conf</CODE>
+before your type make install.
+</P>
+<P>
+To add or check whether your PHP is available from within the Apache server,
+add the following directives at their proper position in the verb!httpd.conf!,
+or check whether all are inserted.
+</P>
+<P>
+<OL type=1><LI>
+The PHP module is being loaded using:
+<PRE>
+LoadModule php5_module modules/libphp5.so
+</PRE><LI>PHP-based index files are preferred over others. Look at the
+ <CODE>DirectoryIndex</CODE> directive in your <CODE>httpd.conf</CODE>.
+ The alternative <CODE>index.php</CODE> should be the first argument in the
+ list.
+<LI>Locate other directives named <CODE>AddType</CODE>, the following lines should
+ be present:
+<PRE>
+AddType application/x-httpd-php .php
+AddType application/x-httpd-php-source .phps
+</PRE></OL>
+</P>
+<P>
+With these changes, and a restarted server, PHP support is made available to
+the Apache web server.
+</P>
+<A NAME="toc7"></A>
+<H3><A NAME="htoc12">2.4</A>&nbsp;&nbsp;<A NAME="sec:install:rpm"></A>
+ Installation from RPMs and alikes</H3>
+<P>
+We provide also alternative installation methods, which require more
+experience with the packages your Linux distribution uses.
+</P>
+<P>
+When using a distribution package, such as the RPMs provided and described
+here, you need to select which primary package is needed for your system.
+Multiple different RPMs with actual the same software package have to be
+provided for if you do want DNS redirection or not, where to install the
+software the default location or one in <CODE>/usr/local/</CODE> and which
+architecture you have. Most importantly though, RPMs provide no means to make
+an initial, working configuration file. You therefore have to locate the
+Apache configuration file and modify it by hand.
+</P>
+<P>
+Also the actual installation is scattered in different places
+(<TT>/var/www</TT> and <TT>/etc/httpd</TT> for instance), with which you have
+to be familiar.
+</P>
+<P>
+If you want to be able to use DNS redirection, you must use an Apache
+installation which has the DNS patch applied to it. Default RPM based
+distributions do not provide an RPM of Apache with this patch applied therefore
+you have to use one of our RPMs. To provide a full service, with up-to-date
+Apache web services with a configuration known to work we also provide RPMs
+for a plain, distribution system-like Apache installation.
+</P>
+<P>
+If you are using a modern Unix or Linux distribution which uses or can use
+RPMs, then you can install Globule from the RPMs as described within this
+section. Alternate, less supported binary distributions are available for
+Debian and another packed as a tarball. The latter distributions only provide
+a basic installation without options such as DNS redirection.<BR>
+They can be found on the <A HREF="http://www.globule.org/download/">download</A>
+page.
+</P>
+
+<H5>1. Requirements</H5>
+<P>
+You will need a recent Linux distribution (we usually test using recent Redhat 
+Fedora or Mandrake distributions). If you have an older (e.g., RedHat 7.2) Linux
+version, then we <EM>strongly</EM> recommend that you upgrade. Alternatively,
+you can check in Section&nbsp;<A HREF="doc007.html#sec:trouble">6</A> if and how you can install Globule
+on your system.
+</P>
+
+<H5>2. Make up your mind</H5>
+<P>
+At this stage, you must decide whether you want to enable your server to
+perform DNS redirection (see Section&nbsp;<A HREF="doc004.html#sec:conf:dnsredir">3.3</A> for more
+information on HTTP vs. DNS redirection). If you don't know what DNS
+redirection is or you don't own your own domain name, then probably you don't
+need DNS redirection at all.
+</P>
+
+<H5>3a. If you <EM>do not</EM> want DNS redirection</H5>
+<P>
+To install Globule you need an recent up-to-date installation of Apache, which
+accept dynamic module loading. We provide also Apache RPMs which are known to
+work and are similar in functionality and construction as the official Apache
+RPMs by RedHat. We however keep more up-to-date and provide the right mix of
+modules and settings which co-operate with Globule. Because some platforms
+are lacking behind in the update of Apache module it is recommended that you
+<EM>uninstall</EM> any standard Apache RPM you may have, and install the RPMs we
+provide instead.
+</P>
+<PRE>
+rpm -e --nodeps apache httpd httpd-devel httpd-manual httpd-mmn
+rpm -ihv http://www.globule.org/download/apache-2.0.55/httpd-2.0.55-1.i386.rpm
+rpm -U http://www.globule.org/download/1.3.1/mod-globule-1.3.1-1.i386.rpm
+</PRE>
+
+<H5>3b. If you <EM>do</EM> want DNS redirection</H5>
+<P>
+Enabling DNS redirection requires that your Apache server can handle UDP
+requests. This is not a standard feature of Apache, so you must install the
+patched version we provide. First uninstall any Apache RPM you may have, then
+install our patched RPM (since this version is solely dedicated to working
+with Globule, we package the two of them together):
+</P>
+<PRE>
+rpm -e --nodeps apache httpd httpd-devel httpd-manual httpd-mmn
+rpm -U http://www.globule.org/download/1.3.1/globule-1.3.1-1.i386.rpm 
+</PRE>
+
+<H5>4. Get started</H5>
+<P>
+Our RPMs will install Apache and Globule in the default RedHat installation
+paths. In particular, you should edit your configuration by opening file
+<TT><B>/etc/httpd/conf/httpd.conf</B></TT> with your favorite text editor. Please
+read Section&nbsp;<A HREF="doc004.html#sec:conf:basic">3.1</A> for basic configuration directives.
+</P>
+<P>
+An attractive way is to avoid composing and maintaining the
+<TT>httpd.conf</TT> configuration file is to use the Globule Broker System,
+which is an automated way to maintain the co-operative relationships between
+origin and replica servers and generate their <TT>httpd.conf</TT>
+configuration scripts automatically.
+</P>
+<P>
+You can start/stop your server with this command:
+</P>
+<PRE>
+/etc/rc.d/init.d/httpd [start|stop]
+</PRE>
+
+<H5>5. Installing Globule RPMs in non-standard directories</H5>
+<P>
+If you don't want to install your server in the standard RedHat paths (e.g.,
+because you want to install Globule side-by-side to an existing Apache
+server), then you can use <TT>httpd-local-2.0.50-1.i386.rpm</TT> and
+<TT>mod-globule-local-1.3.1-1.i386.rpm</TT> instead of <TT>
+httpd-2.0.50-1.i386.rpm</TT> and
+<TT>mod-globule-1.3.1-1.i386.rpm</TT>. Apache and Globule will be
+installed in directory <TT>/usr/local/globule</TT>. Your configuration file will
+be found in <TT>/usr/local/globule/conf/httpd.conf</TT>. To start/stop your
+server you must use:
+</P>
+<PRE>
+/usr/local/globule/bin/apachectl [start|stop]
+</PRE>
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <HR>
+<A HREF="doc002.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc004.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

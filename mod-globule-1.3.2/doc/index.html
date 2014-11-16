@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD><TITLE>Globule User Manual</TITLE>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+</HEAD>
+<BODY >
+<!--HEVEA command line is: hevea -exec xxdate.exe -fix -o doc.html doc.tex -->
+<!--HACHA command line is: hacha doc.html -->
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+
+
+
+
+<H1 ALIGN=center>Globule User Manual</H1>
+
+<H3 ALIGN=center><A HREF="http://www.halderen.net/">Berry&nbsp;van&nbsp;Halderen</A> &nbsp;&nbsp;<A HREF="http://www.cs.vu.nl/~gpierre/">Guillaume&nbsp;Pierre</A></H3>
+
+<H3 ALIGN=center>Version 1.3.1</H3> 
+<H3 ALIGN=center><A HREF="http://www.globule.org/"><TT>http://www.globule.org/</TT></A></H3>
+&nbsp;<BR>
+<BLOCKQUOTE><B>Abstract: </B>Globule is a module for the Apache Web server that allows to replicate Web
+sites across multiple servers potentially located worldwide. This improves the
+site's performance, maintains the site available to its clients even if some
+servers are down, and to a certain extent it allows to resist to flash crowds.<BR>
+<BR>
+A site owner must only define on which server(s) the site should be
+replicated. Globule handles the replication automatically. It also monitors
+the status of servers, so that it can automatically and transparently redirect
+Web clients to one of the available replicas.
+</BLOCKQUOTE>
+
+<br><DIV ALIGN=center>
+ <EM>This document is also available in </EM><A HREF="doc.pdf"><EM>PDF
+ format</EM></A><EM>.</EM>
+</DIV>
+<br><BR>
+<BR>
+<UL>
+<LI><A HREF="doc001.html">Table of Contents</A>
+<LI><A HREF="doc002.html">1&nbsp;&nbsp;Introduction</A>
+<UL>
+<LI><A HREF="doc002.html#toc1">1.1&nbsp;&nbsp;Globule Features</A>
+<LI><A HREF="doc002.html#toc2">1.2&nbsp;&nbsp;Terminology</A>
+<LI><A HREF="doc002.html#toc3">1.3&nbsp;&nbsp;Known issues/limitations</A>
+</UL>
+<LI><A HREF="doc003.html">2&nbsp;&nbsp;Globule Installation</A>
+<UL>
+<LI><A HREF="doc003.html#toc4">2.1&nbsp;&nbsp;
+ Unix and Linux All-in-one installation</A>
+<LI><A HREF="doc003.html#toc5">2.2&nbsp;&nbsp;
+ Windows installation</A>
+<LI><A HREF="doc003.html#toc6">2.3&nbsp;&nbsp;
+ Source distribution</A>
+<LI><A HREF="doc003.html#toc7">2.4&nbsp;&nbsp;
+ Installation from RPMs and alikes</A>
+</UL>
+<LI><A HREF="doc004.html">3&nbsp;&nbsp;
+ Server Configuration</A>
+<UL>
+<LI><A HREF="doc004.html#toc8">3.1&nbsp;&nbsp;
+ Basic Server Configuration</A>
+<LI><A HREF="doc004.html#toc9">3.2&nbsp;&nbsp;
+ Site Replication</A>
+<LI><A HREF="doc004.html#toc10">3.3&nbsp;&nbsp;
+ Client Redirection using DNS</A>
+<LI><A HREF="doc004.html#toc11">3.4&nbsp;&nbsp;
+ System Monitoring</A>
+<LI><A HREF="doc004.html#toc12">3.5&nbsp;&nbsp;
+ Dynamically generated content</A>
+</UL>
+<LI><A HREF="doc005.html">4&nbsp;&nbsp;Supporting utilities</A>
+<UL>
+<LI><A HREF="doc005.html#toc13">4.1&nbsp;&nbsp;GlobuleUtil</A>
+<LI><A HREF="doc005.html#toc14">4.2&nbsp;&nbsp;GlobuleCtl</A>
+</UL>
+<LI><A HREF="doc006.html">5&nbsp;&nbsp;Configuration Directive Reference</A>
+<UL>
+<LI><A HREF="doc006.html#toc15">5.1&nbsp;&nbsp;Generic Directives</A>
+<LI><A HREF="doc006.html#toc16">5.2&nbsp;&nbsp;Replication Directives</A>
+<LI><A HREF="doc006.html#toc17">5.3&nbsp;&nbsp;Redirection Directives</A>
+<LI><A HREF="doc006.html#toc18">5.4&nbsp;&nbsp;DNS Redirection</A>
+<LI><A HREF="doc006.html#toc19">5.5&nbsp;&nbsp;Periodic tasks</A>
+<LI><A HREF="doc006.html#toc20">5.6&nbsp;&nbsp;Obscure and rare settings </A>
+<LI><A HREF="doc006.html#toc21">5.7&nbsp;&nbsp;Recognized units</A>
+</UL>
+<LI><A HREF="doc007.html">6&nbsp;&nbsp;
+ Troubleshooting</A>
+<UL>
+<LI><A HREF="doc007.html#toc22">6.1&nbsp;&nbsp;Compatibility with other Apache modules and settings</A>
+<LI><A HREF="doc007.html#toc23">6.2&nbsp;&nbsp;System resource usage</A>
+</UL>
+<LI><A HREF="doc008.html">A&nbsp;&nbsp;
+ Copyright notices</A>
+<UL>
+<LI><A HREF="doc008.html#toc24">A.1&nbsp;&nbsp;Apache httpd server</A>
+<LI><A HREF="doc008.html#toc25">A.2&nbsp;&nbsp;PHP scripting language</A>
+<LI><A HREF="doc008.html#toc26">A.3&nbsp;&nbsp;Smarty template engine</A>
+<LI><A HREF="doc008.html#toc27">A.4&nbsp;&nbsp;GD graphical library</A>
+<LI><A HREF="doc008.html#toc28">A.5&nbsp;&nbsp;Webalizer web-log report generator</A>
+<LI><A HREF="doc008.html#toc29">A.6&nbsp;&nbsp;MySQL database</A>
+</UL>
+<LI><A HREF="doc009.html">B&nbsp;&nbsp;File structures and protocols</A>
+<UL>
+<LI><A HREF="doc009.html#toc30">B.1&nbsp;&nbsp;
+ <TT>report.log</TT> structure</A>
+</UL>
+<LI><A HREF="doc010.html">References</A>
+</UL>
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <!--FOOTER-->
+<HR SIZE=2><BLOCKQUOTE><EM>This document was translated from L<sup>A</sup>T<sub>E</sub>X by
+<A HREF="http://pauillac.inria.fr/~maranget/hevea/index.html">H<FONT SIZE=2><sup>E</sup></FONT>V<FONT SIZE=2><sup>E</sup></FONT>A and H<FONT SIZE=2><sup>A</sup></FONT>C<FONT SIZE=2><sup>H</sup></FONT>A</A>.
+</EM></BLOCKQUOTE>
+</BODY>
+</HTML>

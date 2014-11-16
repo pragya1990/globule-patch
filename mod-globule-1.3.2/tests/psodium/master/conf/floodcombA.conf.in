@@ -1,0 +1,12 @@
+# Globule
+GlobuleAdminUrl http://localhost:8056/globulectl/
+GlobuleDefaultReplicationPolicy Ttl
+GlobuleDefaultRedirectPolicy    RR
+
+<Location /flexport>
+	GlobuleReplicate on
+	GlobuleReplicaIs http://localhost:8057/flexport w8w00rd
+</Location>
+
+# Psodium
+PsodiumMasterSlaveKeys conf/slavekeys-localhost.txt

@@ -1,0 +1,1162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+<TITLE>
+Globule User Manual: 5  Configuration Directive Reference
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="doc005.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc007.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+<H2><A NAME="htoc41">5</A>&nbsp;&nbsp;Configuration Directive Reference<A NAME="sec:reference"></A></H2>
+<A NAME="toc15"></A>
+<H3><A NAME="htoc42">5.1</A>&nbsp;&nbsp;Generic Directives</H3>
+
+<H4><A NAME="htoc43">5.1.1</A>&nbsp;&nbsp;<A NAME="GlobuleAdminURL">GlobuleAdminURL</A></H4>
+<PRE>
+<b>GlobuleAdminURL</b> <i>url</i> [ <i>password</i> ]
+</PRE>
+<P>
+Set the internal reference and configuration location. Globule requires a
+path by which the internals of Globule can be reached. This is used by
+Globule to contact itself and to provide monitoring information. Any location
+which addresses an available space of your web-server is valid. The URL must
+end with a slash and must by a fully qualified path, including protocol
+<CODE>http://</CODE> and hostname.
+</P>
+
+<H4><A NAME="htoc44">5.1.2</A>&nbsp;&nbsp;<A NAME="GlobuleAdmURL">GlobuleAdmURL</A></H4>
+<P>
+GlobuleAdmURL is an alias for GlobuleAdminURL.
+</P>
+
+<H4><A NAME="htoc45">5.1.3</A>&nbsp;&nbsp;<A NAME="GlobuleBrokerConfigurationSerial">GlobuleBrokerConfigurationSerial</A></H4>
+<PRE>
+<b>GlobuleBrokerConfigurationSerial</b> <i>text</i>
+</PRE>
+<P>
+For use with the Globule Broker System (GBS) at
+<TT>http://www.globeworld.net/</TT>. The
+<B>GlobuleBrokerConfigurationSerial</B> directive is automatically generated
+by the GBS system to indicate the last time this configuration file has been
+generated. It should not be changed or removed from the configuration if
+present. There is no use for specifying this directive by hand. Globule
+itself only stores the date value specified, but does not interpret it. The
+value is returned by the page as specified by GlobuleAdminURL with appended
+path <TT>/gbs</TT>.
+</P>
+
+<H4><A NAME="htoc46">5.1.4</A>&nbsp;&nbsp;<A NAME="GlobuleFancyServerName">GlobuleFancyServerName</A></H4>
+<PRE>
+<b>GlobuleFancyServerName</b> "<i>A fancy name for this machine</i>"
+</PRE>
+<P>
+Gives the server some verbose human interpretable name. This is not used by
+Globule itself, but in normal settings reported back through special headers
+back to the browser and may be used by a Javascript program or special
+plug-ins.
+This is usefull to indicate by whom the request was actually served,
+especially when using DNS redirection. Not only for diagnostical reasons, but
+also some publicity can be used to indicate on the web-page ``this web-site was
+ by ...''.
+</P>
+<P>
+For this reason there are three possible type of values this directive
+recommended to give this directive:
+<UL><LI>
+either it can be a fully specified URL pointing to some image which has
+a logo or sorts of the site.
+<LI>it can be a single word identifying the server
+<LI>it can be an entire text line, however without HTML formatting.
+</UL>
+The latter is however not always nicely reported back to the user for all type
+of display scripts.
+</P>
+<P>
+If not specified, defaults to the ServerName in effect. This directive can be
+specified at a global level and later overridden on a per globule imported or
+exported section.
+</P>
+
+<H4><A NAME="htoc47">5.1.5</A>&nbsp;&nbsp;<A NAME="GlobuleMonitor">GlobuleMonitor</A></H4>
+<PRE>
+<b>GlobuleMonitor</b> <i>item</i> <i>filter</i> <i>options</i>
+</PRE>
+<P>
+Deprecated and ignored use GlobuleDebugProfile instead.
+</P>
+
+<H4><A NAME="htoc48">5.1.6</A>&nbsp;&nbsp;<A NAME="GlobuleDebugProfile">GlobuleDebugProfile</A></H4>
+<PRE>
+<b>GlobuleDebugProfile</b> [ <b>defaults</b> | <b>normal</b> | <b>extended</b> | <b>verbose</b> ]
+</PRE>
+<P>
+Specifies how verbose the error reporting should be by Globule. The
+``defaults'' setting is now equivalent to the setting ``normal'', this default
+setting does not output much information about its workings and logs only
+serious error messages. You can change this by selecting one of the standard
+profiles.
+</P>
+<P>
+Note that even though the setting may be set to ``verbose'', the messages with
+log-level ``informational'', etcetera may still be suppressed by a LogLevel
+directive as used by Apache. For instance, if you set your ErrorLevel to
+error, you will not see most messages which would have been outputted by the
+extended profile. Also remember that with Apache, you should specify the
+ErrorLevel <EM>before</EM> the ErrorLog directive.
+</P>
+
+<H4><A NAME="htoc49">5.1.7</A>&nbsp;&nbsp;<A NAME="GlobuleMemSize">GlobuleMemSize</A></H4>
+<PRE>
+<b>GlobuleMemSize</b> <i>size</i>
+</PRE>
+<P>
+Instructs Globule to use a shared memory segment of the instructed size
+instead of the default. The size is in bytes, but may be followed with a
+denomination as specified in&nbsp;<A HREF="#sec:units">5.7</A>, such as in:
+</P>
+<PRE>
+GlobuleMemSize "8 mb"
+</PRE>
+<P>
+Which specifies 8 megabyte, or 8388608 bytes, which is also the default.
+</P>
+<P>
+Many Linux/Unix operating systems do not allow large quantities of shared
+memory to be allocated. Instructions on how to check your current limits, and
+increase them if necessary, are available in Section&nbsp;<A HREF="doc007.html#sec:trouble:shmem">6.2.1</A>.
+</P>
+<A NAME="toc16"></A>
+<H3><A NAME="htoc50">5.2</A>&nbsp;&nbsp;Replication Directives</H3>
+
+<H4><A NAME="htoc51">5.2.1</A>&nbsp;&nbsp;<A NAME="GlobuleReplicate">GlobuleReplicate</A></H4>
+<PRE>
+<b>&lt;Location</b> <i>/path</i><b>&gt;</b>
+     <b>GlobuleReplicate</b> [ <b>on</b> | <b>off</b> ]
+   [ <b>GlobuleReplicaIs</b>    <i>url</i> <i>secret</i> ]
+   [ <b>GlobuleBackupIs</b>     <i>url</i> <i>secret</i> ]
+   [ <b>GlobuleRedirectorIs</b> <i>url</i> <i>secret</i> ]
+ <b>&lt;/Location&gt;</b>
+</PRE>
+<P>
+The <TT>GlobuleReplicate</TT> directive is used in an origin server to define
+which part of the site must be copied to replica, backup or redirector
+servers. It must be contained within a standard Apache <TT>&lt;Location&gt;</TT>,
+<TT>&lt;Directory&gt;</TT> or <TT>&lt;Files&gt;</TT> environment. It specifies that all the
+contents which match that environment should (or should not) be replicated to
+replica servers, overriding an earlier-defined parent location
+specification. This way you can turn off replication for a sub-location, and
+turn it on again for a sub-sub-location. Also replication can be turned off
+for files matching a given pattern, using the Apache <TT>&lt;Files&gt;</TT> and
+<TT>&lt;FilesMatch&gt;</TT> environment.
+</P>
+<PRE>
+&lt;Location /&gt;
+     GlobuleReplicate on
+     GlobuleReplicaIs    ...
+     GlobuleBackupIs     ...
+     GlobuleRedirectorIs ...
+     &lt;Location /cgi-bin/&gt;
+         GlobuleReplicate off
+     &lt;/Location&gt;
+     &lt;Files *.pdf&gt;
+         GlobuleReplicate off
+     &lt;/Files&gt;  
+ &lt;/Location&gt;
+</PRE>
+<P>
+In a hierarchy of <TT>&lt;Location&gt;</TT> with <TT>GlobuleReplicate</TT> set on and off,
+only the parent definition should contain <A HREF="#GlobuleReplicaIs">GlobuleReplicaIs</A>,
+<A HREF="#GlobuleBackupIs">GlobuleBackupIs</A> and/or <A HREF="#GlobuleRedirectorIs">GlobuleRedirectorIs</A>
+directives. They are defined for the whole section of locations. You cannot
+overload them in sub-locations.
+</P>
+<P>
+Note that a location definition using <TT>&lt;Location /export&gt;</TT> may mean
+something different from <TT>&lt;Location /export/&gt;</TT>. The latter is a directory
+specification, which is probably what you want.
+</P>
+
+<H4><A NAME="htoc52">5.2.2</A>&nbsp;&nbsp;<A NAME="GlobuleReplicaIs">GlobuleReplicaIs</A></H4>
+<PRE>
+<b>GlobuleReplicaIs</b> http://replica.full.domain/  p4ssw0rd1
+<b>GlobuleReplicaIs</b> http://replica.full.domain:8333/replicapath/ p4ssw0rd2
+</PRE>
+<P>
+<TT>GlobuleReplicaIs</TT> is used at origin servers to specify which servers
+should act as a replica for the site. For each specified replica server, it
+also defines a password which is used for mutual authentication between the
+origin and the replica. Note that it is in general not a good idea to use the
+same password for several origin-replica pairs.
+</P>
+<P>
+Replica servers listed on the origin server must add a corresponding
+<A HREF="#GlobuleReplicaFor">GlobuleReplicaFor</A> directive. The origin's
+<TT>GlobuleReplicaIs</TT> directive and the corresponding replica's
+<TT>GlobuleReplicaFor</TT> directive must mention the same password, otherwise
+mutual authentication will fail.
+</P>
+<P>
+The URL mentioned in <TT>GlobuleReplicaIs</TT> is a concatenation of the replica
+server's fully qualified hostname, port number (if different from 80) and its
+import path as defined in the replica's <A HREF="#GlobuleReplicaFor">GlobuleReplicaFor</A>
+definition. Fully qualified hostnames are mandatory. The path must end in a
+slash, as a whole directory is normally exported.
+</P>
+
+<H4><A NAME="htoc53">5.2.3</A>&nbsp;&nbsp;<A NAME="GlobuleBackupIs">GlobuleBackupIs</A></H4>
+<PRE>
+<b>GlobuleBackupIs</b> http://replica.full.domain/  p4ssw0rd1
+<b>GlobuleBackupIs</b> http://replica.full.domain:8333/replicapath/ p4ssw0rd2
+</PRE>
+<P>
+<TT>GlobuleBackupIs</TT> is similar to the <A HREF="#GlobuleReplicaIs">GlobuleReplicaIs</A>
+directive, except that is is used at an origin server to define backups of the
+site (rather than to define its replicas). It also takes the same arguments.
+</P>
+<P>
+Backup servers listed on the origin server must add a corresponding
+<A HREF="#GlobuleBackupFor">GlobuleBackupFor</A> directive. The origin's <TT>GlobuleBackupIs</TT>
+directive and the corresponding backup's <TT>GlobuleBackupFor</TT> directive must
+mention the same password, otherwise mutual authentication will fail.
+</P>
+<P>
+In addition, all replicas of the site must add a
+<A HREF="#GlobuleBackupForIs">GlobuleBackupForIs</A> directive in their configuration. When they
+need a fresh copy of a document, if the origin server is unreachable, then
+they will retrieve it from one of the backups specified that way.
+</P>
+
+<H4><A NAME="htoc54">5.2.4</A>&nbsp;&nbsp;<A NAME="GlobuleRedirectorIs">GlobuleRedirectorIs</A></H4>
+<PRE>
+<b>GlobuleRedirectorIs</b> http://redir.full.domain/  p4ssw0rd1
+<b>GlobuleRedirectorIs</b> http://redir.full.domain:8333/redirpath/ p4ssw0rd2
+</PRE>
+<P>
+<TT>GlobuleRedirectorIs</TT> is used at an origin server to specify one or more
+stand-alone redirectors for the site. Using one or more redirector(s) external
+to the origin server is useful to keep the site running even though the origin
+may be down.
+</P>
+<P>
+If no redirector is specified for a given origin, then the origin server will
+automatically act as its own redirector.
+</P>
+<P>
+<TT>GlobuleRedirectorIs</TT> takes the same arguments as a
+<A HREF="#GlobuleReplicaIs">GlobuleReplicaIs</A> directive.
+</P>
+<P>
+Redirector servers listed at an origin server must add a corresponding
+<A HREF="#GlobuleRedirectorFor">GlobuleRedirectorFor</A> directive. The origin's
+<TT>GlobuleRedirectorIs</TT> directive and the corresponding backup's
+<TT>GlobuleRedirectorFor</TT> directive must mention the same password, otherwise
+mutual authentication will fail.
+</P>
+
+<H4><A NAME="htoc55">5.2.5</A>&nbsp;&nbsp;<A NAME="GlobuleReplicaFor">GlobuleReplicaFor</A></H4>
+<PRE>
+<b>&lt;Location /path&gt;</b>
+   <b>GlobuleReplicaFor</b>  <i>origin-url</i>  <i>secret</i>
+ [ <b>GlobuleBackupForIs</b> <i>origin-url</i>  <i>backup-url</i> ]
+ [ <b>GlobuleBackupForIs</b> <i>origin-url</i>  <i>2nd-backup-url</i> ]
+<b> &lt;/Location&gt;</b>
+</PRE>
+<P>
+The <TT>GlobuleReplicaFor</TT> directive is used to configure a replica
+server. This directive must be used within a <TT>&lt;Location&gt;</TT> or
+<TT>VirtualServer</TT> container which indicates what is the location of the
+replica. <TT>GlobuleReplicaFor</TT> must match a corresponding
+<A HREF="#GlobuleReplicaIs">GlobuleReplicaIs</A> directive configured at the origin server.
+</P>
+<P>
+The <TT>GlobuleReplicaFor</TT> directive takes as parameters the URL of the
+origin site, and a password. The URL must contain a fully qualified host name,
+and refer to the whole path specified at the origin server (e.g., if the
+origin server exports <TT>http://www.mysite.com/myorigin/</TT> then you cannot
+import only <TT>http://www.mysite.com/myorigin/subdir/</TT> at the replica. The
+specified password must be the same as in the origin server's configuration,
+otherwise authentication will not work.
+</P>
+<P>
+Note that, if the site has one or more backup(s), then they must be mentioned
+in each replica server's configuration using the
+<A HREF="#GlobuleBackupForIs">GlobuleBackupForIs</A> directive.
+</P>
+
+<H4><A NAME="htoc56">5.2.6</A>&nbsp;&nbsp;<A NAME="GlobuleBackupFor">GlobuleBackupFor</A></H4>
+<PRE>
+<b>&lt;Location /path&gt;</b>
+   <b>GlobuleBackupFor</b>  <i>url</i>  <i>secret</i>
+<b>&lt;/Location&gt;</b>
+</PRE>
+<P>
+The <TT>GlobuleBackupFor</TT> directive is used to configure a backup
+server. This directive must be used within a <TT>&lt;Location&gt;</TT> or
+<TT>VirtualServer</TT> container which indicates what is the location of the
+backup. <TT>GlobuleReplicaFor</TT> must match a corresponding
+<A HREF="#GlobuleReplicaIs">GlobuleReplicaIs</A> directive configured at the origin server.
+</P>
+<P>
+The URL must contain a fully qualified host name, and refer to the whole path
+specified at the origin server (e.g., if the origin server exports
+<TT>http://www.mysite.com/myorigin/</TT> then you cannot import only
+<TT>http://www.mysite.com/myorigin/subdir/</TT> at the backup. The specified
+password must be the same as in the origin server's configuration, otherwise
+authentication will not work.
+</P>
+
+<H4><A NAME="htoc57">5.2.7</A>&nbsp;&nbsp;<A NAME="GlobuleBackupForIs">GlobuleBackupForIs</A></H4>
+<PRE>
+<b>&lt;Location /path/&gt;</b>
+   <b>GlobuleReplicaFor</b>  <i>origin-url</i>  <i>secret</i>
+   <b>GlobuleBackupForIs</b> <i>origin-url</i>  <i>backup-url</i>
+<b>&lt;/Location&gt;</b>
+</PRE>
+<P>
+The <TT>GlobuleBackupForIs</TT> directive is used at the replica servers to
+specify the list of backup servers they can access in case the origin is
+down. The first argument defines the fully qualified URL of the origin
+server. This should be the same as indicated in the
+<A HREF="#GlobuleReplicaFor">GlobuleReplicaFor</A> directive. The second argument defines the
+fully qualified URL of the backup.
+</P>
+
+<H4><A NAME="htoc58">5.2.8</A>&nbsp;&nbsp;<A NAME="GlobuleRedirectorFor">GlobuleRedirectorFor</A></H4>
+<PRE>
+&lt;Location /path/&gt;
+   <b>GlobuleRedirectorFor</b>  <i>url</i>  <i>secret</i>
+ &lt;/Location&gt;
+</PRE>
+<P>
+The <TT>GlobuleRedirectorForIs</TT> directive is used at the origin servers to
+specify one or more external redirector(s). Each <TT>GlobuleRedirectorForIs</TT>
+directive must match a corresponding <A HREF="#GlobuleRedirectorIs">GlobuleRedirectorIs</A>
+directive at the redirector server.
+</P>
+<P>
+If no external redirector is defined for a given site, then the origin server
+will perform the redirection itself.
+</P>
+<P>
+External redirectors are useful because they allow clients to be redirected to
+replicas even though the master server is down. To build a reasonably
+fault-tolerant site, at least two external redirectors are necessary.
+</P>
+<P>
+This directive takes two parameters. The <TT>url</TT> parameter defines for which
+site the redirector will be defined. The URL must exactly match an exported
+path as indicated by a <A HREF="#GlobuleReplicate">GlobuleReplicate</A> directive at the origin
+server. The second parameter is a password used for mutual authentication
+between the origin and the redirector servers. The same password must be
+present in both configurations.
+</P>
+
+<H4><A NAME="htoc59">5.2.9</A>&nbsp;&nbsp;<A NAME="GlobuleDefaultReplicationPolicy">GlobuleDefaultReplicationPolicy</A></H4>
+<PRE>
+<b>GlobuleDefaultReplicationPolicy</b> {<b>Ttl</b>|<b>Alex</b>|<b>Invalidate</b>|<b>PureProxy}</b>
+</PRE>
+<P>
+The <TT>GlobuleDefaultReplicationPolicy</TT> directive defines the replication
+policy that should be associated to new documents. After a while, Globule will
+use the recorded access logs to this document to decide on which policy is
+best for this document.
+</P>
+<P>
+Globule contains five different policies:
+</P>
+<P>
+<UL><LI>
+<TT>Ttl</TT> replicates the document at the replica server for a
+ finite time (currently fixed at 10 seconds). After this delay, the
+ document is removed from the replica. When requested for this
+ document later on, it will fetch it again from the master or one of
+ its backups.
+<LI><TT>Alex</TT> is similar to the Ttl policy, but computes the time
+ at which a documents remains valid based on the last update of that
+ document. The validity period of a document is defined as a fraction
+ of its age (defined as the delay between the time it was last
+ updated and the time it was fetched by the replica server). 
+<LI><TT>Invalidate</TT> replicates the document at the replica servers
+ for indefinite time. when a copy of the document is made at a
+ replica server, the origin server remembers where copies of this
+ document are located. As soon as the document is updated, the origin
+ server will send invalidations to the replicas to ask them to
+ destroy their stale copy.
+<LI><TT>PureProxy</TT> does not replicate documents. Each time a
+ replica will receive a request for the document, it will fetch it
+ from the master and deliver it to the client without storing it in
+ its repository. 
+</UL>
+</P>
+<P>
+The only sensible replication strategy to be used for disconnected origin
+server operation is currently <TT>Invalidate</TT>.
+</P>
+<P>
+The default is <TT>Invalidate</TT>.
+</P>
+
+<H4><A NAME="htoc60">5.2.10</A>&nbsp;&nbsp;<A NAME="GlobuleMaxDiskSpace">GlobuleMaxDiskSpace</A></H4>
+<PRE>
+GlobuleMaxDiskSpace 64mb
+</PRE>
+<P>
+<TT>GlobuleMaxDiskSpace</TT> is used at replica servers to define how much disk
+space may be used for storing the replicated site. If the size of the site is
+greater than the configured allowed space, then rarely-accessed documents will
+be removed from the replica. Note that Globule may exceed this limit
+temporarily while servicing a request.
+</P>
+<P>
+<TT>GlobuleMaxDiskSpace</TT> takes one parameter, which is the size allocated for
+this replica in bytes. You may append a unit size such as ``kb'', ``mb'',
+``gb'' or even ``gigabytes''. Note that the default is in bytes, so if you
+specify just ``100'' it will probably pose some problems as 100 bytes it
+probably too little for even a single document.
+</P>
+<P>
+Default value is 50&nbsp;MB.
+</P>
+
+<H4><A NAME="htoc61">5.2.11</A>&nbsp;&nbsp;<A NAME="GlobuleMaxMetaDocsInMemory">GlobuleMaxMetaDocsInMemory</A></H4>
+<PRE>
+GlobuleMaxMetaDocsInMemory 1000
+</PRE>
+<P>
+Globule never stores documents in main memory. However, for performance
+reasons, it often stores information about documents (i.e., meta-documents) in
+memory.
+</P>
+<P>
+<TT>GlobuleMaxMetaDocsInMemory</TT> is used at the origin, replica and backup
+servers to define how many meta-documents may reside in main memory. Note that
+Globule may temporarily exceed this limit while servicing a request.
+</P>
+<P>
+<TT>GlobuleMaxMetaDocsInMemory</TT> takes one parameter, which is (as you
+guessed) the maximum number of meta-documents.
+</P>
+<P>
+If you increase this limit, then you must probably also increase
+<A HREF="#GlobuleMemSize">GlobuleMemSize</A>, otherwise your server may crash.
+</P>
+<P>
+The default value is 500.
+</P>
+
+<H4><A NAME="htoc62">5.2.12</A>&nbsp;&nbsp;<A NAME="GlobuleLockCount">GlobuleLockCount</A></H4>
+<PRE>
+GlobuleLockCount 4
+</PRE>
+<P>
+Globule uses locks to synchronize access to shared memory. The
+number of locks can be set at a global level or can be overridden in
+an exported or imported section. A high number of locks will take
+more resources on your machine, but it will allow better
+multitasking at the Globule server.
+</P>
+<P>
+Some Linux/Unix systems will restrict the number of locks that you can
+allocate. Instructions on how to check your current limits, and increase them
+if necessary, are available in Section&nbsp;<A HREF="doc007.html#sec:trouble:locks">6.2.2</A>.
+</P>
+<P>
+The default value is 4 locks per exported or imported web-site.
+</P>
+
+<H4><A NAME="htoc63">5.2.13</A>&nbsp;&nbsp;<A NAME="GlobuleDirectory">GlobuleDirectory</A></H4>
+<PRE>
+ &lt;Location /&gt;
+     GlobuleReplicate on
+     GlobuleDirectory /var/www/htdocs/somedir/.htglobule
+     GlobuleReplicaIs    ...
+     GlobuleBackupIs     ...
+     GlobuleRedirectorIs ...
+ &lt;/Location&gt;
+</PRE>
+<P>
+Globule needs to store information about documents on disk. Each origin,
+replica or backup configured at a given Globule server will need its own
+repository for meta-documents.
+</P>
+<P>
+If no <TT>GlobuleDirectory</TT> directive is defined, then meta-documents are
+stored <EM>within the directory which contains documents</EM>, in a
+sub-directory called <TT>.htglobule</TT>. The <TT>GlobuleDirectory</TT> directive
+allows to set this directory to a different path.
+</P>
+<P>
+<TT>GlobuleDirectory</TT> take as parameter the absolute path of the directory
+where meta-documents must be stored instead.
+If the specified directory does not exist, Globule will create it
+automatically. When Globule is started as root, it will transfer the ownership
+of the directories in the <TT>GlobuleDirectory</TT> to the user that will run the
+worker servers (i.e., the user specified via the standard Apache User
+directive.)
+The use of this directive is however discouraged and may be depricated in
+future.
+</P>
+
+<H4><A NAME="htoc64">5.2.14</A>&nbsp;&nbsp;<A NAME="GlobuleDatabase">GlobuleDatabase</A></H4>
+<PRE>
+<b>GlobuleDatabase</b> mysql://<i>user</i>#<i>password</i>@<i>hostname</i>/<i>database</i>  <i>secret</i>
+<b>GlobuleDatabase</b> http://<i>host</i>/<i>path</i> <i>secret</i>
+</PRE>
+<P>
+At the origin server the first syntax form is used to establish a connection
+to the actual database. The latter forms are used at the replica sites to
+tunnel queries to the origin server. In effect, both forms provide a method
+for executing queries on the database using a HTTP interface, to be used by
+Globule only (``mounting the database on a HTTP address'').
+</P>
+<P>
+The GlobuleDatabase directive should be enclosed inside a <CODE>&lt;Location&gt;</CODE>
+environment, where origin and replica servers should use the same path in the
+Location, otherwise PHP scripts cannot transparently access the database.
+Normally the <I>hostname</I> is set to <CODE>localhost</CODE> to use the local
+database accessible through a Unix domain socket. The <CODE>#password</CODE> part
+is optional, if left out an empty password is used.
+</P>
+<P>
+The shared password <I>secret</I> should be match between origin and all
+replica servers, to shield the usage of the database interface by
+non-authorized users.<BR>
+Only access to the defined database is given, not other databases on the
+database server. If multiple databases are to be accessed, each one should
+use a GlobuleDatabase definition.
+</P>
+<A NAME="toc17"></A>
+<H3><A NAME="htoc65">5.3</A>&nbsp;&nbsp;Redirection Directives</H3>
+<P>
+For an introduction to redirection in Globule, please read
+section&nbsp;<A HREF="doc004.html#sec:conf:dnsredir">3.3</A>.
+</P>
+
+<H4><A NAME="htoc66">5.3.1</A>&nbsp;&nbsp;<A NAME="GlobuleRedirectionMode">GlobuleRedirectionMode</A></H4>
+<PRE>
+<b>GlobuleRedirectionMode</b> {<b>OFF</b>|<b>HTTP</b>|<b>DNS</b>|<b>BOTH}</b>
+</PRE>
+<P>
+The <TT>GlobuleRedirectionMode</TT> directive defines which redirection
+mechanism should be used by a server.
+<UL><LI>
+OFF disables redirection; 
+<LI>HTTP activates HTTP-based redirection (302 Moved); 
+<LI>DNS activates internal DNS server (requires access to port 53,
+ so you probably must have administrator privileges);
+<LI>BOTH activates both HTTP and DNS redirection modes.
+</UL>
+</P>
+<P>
+<TT>GlobuleRedirectionMode</TT> must be defined <EM>before</EM> any exported or
+imported sections in your configuration. If any of the exported sections want
+to use DNS redirection, then you must enable DNS redirection at a global
+level. The individual sections can then override to use HTTP redirection only.
+</P>
+<P>
+To use DNS redirection, you must use our patched version of Apache, so that it
+can handle UDP requests. Instructions on how to do that are available in
+Section&nbsp;<A HREF="doc003.html#sec:install">2</A>.
+</P>
+<P>
+The default value is HTTP.
+</P>
+
+<H4><A NAME="htoc67">5.3.2</A>&nbsp;&nbsp;<A NAME="GlobuleDefaultRedirectPolicy">GlobuleDefaultRedirectPolicy</A></H4>
+<PRE>
+<b>GlobuleDefaultRedirectPolicy</b> {<b>RR</b>|<b>WRR</b>|<b>AS</b>|<b>BAS</b>|<b>WRAND</b>|<b>static}</b>
+</PRE>
+<P>
+ Globule can use several redirection policies, that is, several ways
+ to decide to which replica clients should be redirected to. The
+ <TT>GlobuleDefaultRedirectPolicy</TT> directive allows you to select
+ one policy out of these:
+</P>
+<UL><LI>
+<B>RR</B> enables round-robin redirection. This means that
+ clients will be redirected to each replica server, one after the
+ other, without trying to optimize the client-to-replica distance.
+<LI>bf WRR enables weighted round-robin. Operates like RR, except
+ that replica's are assigned weights, where replica's with a higher weight
+ are selected more often to be the first on the list to be returned.
+<LI><B>AS</B> enables AS-based redirection. It redirects each client
+ to a replica so that the number of
+ <A HREF="http://en.wikipedia.org/wiki/Autonomous_system_%28Internet%29">Autonomous
+ Systems</A> traversed on the client-to-replica path is minimized. It
+ needs to read network routing information from a file (see the
+ <A HREF="#GlobuleBGPDataFile">GlobuleBGPDataFile</A> and
+ <A HREF="#GlobuleBGPReloadAfter">GlobuleBGPReloadAfter</A> directives).
+<LI><B>BAS</B> enables a balanced AS-based redirection. Operates like AS,
+ except that replica's are assigned weights and if a replica is chosen 
+ more often that others in respect to its assigned weight, it will be
+ skipped until it load is more in line with the other replica's.
+<LI><B>WRAND</B> enables weighted random redirection. Replica's are chosen
+ randomly, where replica's with a higher weight are more likely to be chosen.
+<LI><B>static</B> always returns the first host in the list (this is
+ sometimes useful when doing stand-alone redirection, i.e., when
+ replication is disabled).
+</UL>
+<P>
+ The default value is <EM>static</EM>.
+</P>
+
+<H4><A NAME="htoc68">5.3.3</A>&nbsp;&nbsp;<A NAME="GlobuleBGPDataFile">GlobuleBGPDataFile</A></H4>
+<PRE>
+GlobuleBGPDataFile /etc/oix-full-snapshot-latest.dat
+</PRE>
+<P>
+To use the AS-based redirection policies, you must first download a view of the
+current routing information from the routeviews.org Web site. At
+<A HREF="ftp://ftp.routeviews.org/oix-route-views/"><TT>ftp://ftp.routeviews.org/oix-route-views/</TT></A> there is a
+directory for the current year and month, containing a file called
+<TT>oix-full-snapshot-latest.dat.bz2</TT>. You need to download the most recent
+file, and uncompress it using the
+<A HREF="http://sources.redhat.com/bzip2/">bzip2</A> utility. You then make the
+file available to Globule via this <TT>GlobuleBGPDataFile</TT> directive.
+</P>
+<P>
+Based on this file, Globule creates a map of the Internet, and then uses it to
+calculate the distance between clients and replicas. In general, only the most
+recent BGP data file needs to be downloaded from the RouteViews site. If the
+BGP data file is unavailable or corrupted, Globule will default to static
+redirection.
+</P>
+<P>
+Default is <TT>/dev/null</TT>.
+</P>
+
+<H4><A NAME="htoc69">5.3.4</A>&nbsp;&nbsp;<A NAME="GlobuleBGPReloadAfter">GlobuleBGPReloadAfter</A></H4>
+<PRE>
+GlobuleBGPReloadAfter 86400
+</PRE>
+<P>
+When using a AS-based redirection policy, you will want to keep your routing
+information up-to-date. The <TT>GlobuleBGPReloadAfter</TT> directive allows you
+to specify how often (in seconds) Globule should re-read its BGP data file.
+</P>
+<P>
+Note that Globule currently cannot reload this file automatically from the
+RouteViews FTP site, so you will have to do it yourself. The
+<A HREF="http://www.gnu.org/software/wget/wget.html">wget</A> and
+<A HREF="http://www.unixgeeks.org/security/newbie/unix/cron-1.html">cron</A>
+utilities can be useful here.
+</P>
+<P>
+By appending a unit such as ``min'', ``seconds'', ``days'', ``week'', you can
+use the more human friendly numberic value.<BR>
+<BR>
+See&nbsp;<A HREF="#sec:units">5.7</A> for accepted units.<BR>
+<BR>
+The default value is 86400 seconds (1 day).
+</P>
+<A NAME="toc18"></A>
+<H3><A NAME="htoc70">5.4</A>&nbsp;&nbsp;DNS Redirection</H3>
+<P>
+A DNS query to a replicated site is responded by a set of IP numbers of the
+replica servers. Accompanying this data is also a Time-To-Live (TTL) field
+indicating how long the result may be cached by the browser (or Proxy, or an
+intermediate ISP DNS server) before it has to re-ask the same query again.
+The system contains default TTL values for different redirection policies.
+These defaults may be changed using one of the GlobuleTTL* directives.
+</P>
+<P>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP>redirection policy</TD>
+<TD ALIGN=left NOWRAP>uses TTL as specified by:</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>Static</TT>, or no-policy</TD>
+<TD ALIGN=left NOWRAP><TT>GlobuleTTL</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>RR</TT>, <TT>WRR</TT></TD>
+<TD ALIGN=left NOWRAP><TT>GlobuleTTL_RR</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>WRAND</TT></TD>
+<TD ALIGN=left NOWRAP><TT>GlobuleTTL_RR</TT></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><TT>AS</TT>, <TT>BAS</TT></TD>
+<TD ALIGN=left NOWRAP><TT>GlobuleTTL_AS</TT></TD>
+</TR></TABLE>
+</P>
+<P>
+Lower values will make your site more responsive to changes in the set of
+available replicas, but they will increase the load at your redirectors.
+</P>
+<P>
+<B>Attention:</B> TTL values below 600 seconds may strongly reduce your
+redirection efficiency and is considered mal-practice on the Internet.
+</P>
+
+<H4><A NAME="htoc71">5.4.1</A>&nbsp;&nbsp;<A NAME="GlobuleTTL">GlobuleTTL</A></H4>
+<PRE>
+GlobuleTTL 86400
+</PRE>
+<P>
+This sets the TTL value for all DNS responses regarding static sites (see
+<A HREF="#GlobuleDefaultRedirectPolicy">GlobuleDefaultRedirectPolicy</A>).
+</P>
+<P>
+The default value is 86400 seconds (i.e., 1 day).
+</P>
+
+<H4><A NAME="htoc72">5.4.2</A>&nbsp;&nbsp;<A NAME="GlobuleTTL_RR">GlobuleTTL_RR</A></H4>
+<PRE>
+GlobuleTTL_RR 1800
+</PRE>
+<P>
+This sets the TTL value for all DNS responses regarding round-robin sites (see
+<A HREF="#GlobuleDefaultRedirectPolicy">GlobuleDefaultRedirectPolicy</A>).
+</P>
+<P>
+The default value is 1800 seconds (i.e., 30 minutes).
+</P>
+
+<H4><A NAME="htoc73">5.4.3</A>&nbsp;&nbsp;<A NAME="GlobuleTTL_AS">GlobuleTTL_AS</A></H4>
+<PRE>
+GlobuleTTL_AS 600
+</PRE>
+<P>
+This sets the TTL value for all DNS responses regarding AS-based sites (see
+<A HREF="#GlobuleDefaultRedirectPolicy">GlobuleDefaultRedirectPolicy</A>).
+</P>
+<P>
+The default value is 600 seconds (i.e., 10 minutes).
+</P>
+
+<H4><A NAME="htoc74">5.4.4</A>&nbsp;&nbsp;<A NAME="GlobuleMaxIPCount">GlobuleMaxIPCount</A></H4>
+<PRE>
+GlobuleMaxIPCount 3
+</PRE>
+<P>
+Upon DNS queries, Globule selects a number of IP addresses based on the
+availability and redirection policy. Depending on availability and policy
+used the number of returned addresses is between 0 and <I>count</I>. The
+default is to try to return 3 IP addresses.
+</P>
+<P>
+<TT>GlobuleMaxIPCount</TT> defines how many responses should be returned.
+</P>
+<P>
+Note that HTTP redirectors can return only one response, so
+<TT>GlobuleMaxIPCount</TT> has no effect on them.
+</P>
+<P>
+The default value is 3.
+</P>
+
+<H4><A NAME="htoc75">5.4.5</A>&nbsp;&nbsp;<A NAME="GlobuleDNSRedirectionAddress">GlobuleDNSRedirectionAddress</A></H4>
+<PRE>
+<b>GlobuleDNSRedirectionAddress</b> :<i>port-number</i>
+<b>GlobuleDNSRedirectionAddress</b> <i>ip-address</i>
+<b>GlobuleDNSRedirectionAddress</b> <i>ip-address</i>:<i>port-number</i>
+<b>GlobuleDNSRedirectionAddress</b> <i>ip-address</i> <i>port-number</i>
+</PRE>
+<P>
+The <TT>GlobuleDNSRedirectionAddress</TT> directive allows to specify which port
+the DNS redirector should listen to and/or which specific ip-address to bind
+to. It serves the same purpose as the standard Apache <TT>Listen</TT>
+directive, but now for DNS requests.
+</P>
+<P>
+This directive is mostly useful for debug purposes as it allows you to test
+DNS redirection as non-root user.
+</P>
+<P>
+Note that, if you select any port number other than 53, then your redirector
+will not be accessible to regular clients.
+</P>
+<P>
+This directive <EM>must</EM> be specified <EM>before</EM> the first <B>RedirectionMode</B> directive.
+</P>
+<A NAME="toc19"></A>
+<H3><A NAME="htoc76">5.5</A>&nbsp;&nbsp;Periodic tasks</H3>
+<P>
+Globule needs to update its internal state on a periodic basis, among others
+to check for updated documents, whether replica servers are available and if
+there isn't a more optimal usage of resources.
+</P>
+<P>
+Periodic tasks are triggered by a so-called heart-beat mechanism. The
+following directives allow you to control how fast Globule's heart should
+beat.
+</P>
+
+<H4><A NAME="htoc77">5.5.1</A>&nbsp;&nbsp;<A NAME="GlobuleHeartBeatInterval">GlobuleHeartBeatInterval</A></H4>
+<PRE>
+GlobuleHeartBeatInterval 10seconds
+GlobuleHeartBeatInterval 1minute
+</PRE>
+<P>
+This directive controls how often periodic tasks should take place. The most
+important of these tasks consists of checking whether replica servers are
+still alive. This should be done on a fairly frequent basis, otherwise it may
+take a long time before an unavailable replica is noticed and clients are no
+longer redirected to it.
+</P>
+<P>
+The argument is in seconds or can be suffixed with an appropriate denominator
+(seconds, minutes, hours, days, etc.)
+</P>
+<P>
+The default value is 120 seconds.
+</P>
+
+<H4><A NAME="htoc78">5.5.2</A>&nbsp;&nbsp;<A NAME="GlobulePolicyAdaptationInterval">GlobulePolicyAdaptationInterval</A></H4>
+<PRE>
+GlobulePolicyAdaptationInterval 1200seconds
+GlobulePolicyAdaptationInterval 20minutes
+GlobulePolicyAdaptationInterval 3hours
+</PRE>
+<P>
+Every few heart beat events, Globule will reevaluate its choices of
+replication policies for each document. If the current policy for a document
+is no longer the best one, its replication policy will be switched to the new
+best one. Evaluating the policy is done on a per-document basis, but all
+documents for an exported path are evaluated in one go. The
+<TT>GlobulePolicyAdaptationInterval</TT> directive specifies the delay (in
+seconds) between policy re-evaluations.
+</P>
+<P>
+Please note that the <TT>GlobulePolicyAdaptationInterval</TT> must be a multiple
+of <A HREF="#GlobuleHeartBeatInterval">GlobuleHeartBeatInterval</A>. If it is not, then it will be
+rounded up to the next multiple.
+</P>
+<P>
+Any declaration of the <A HREF="#GlobuleHeartBeatInterval">GlobuleHeartBeatInterval</A> must precede
+the declaration of a <TT>GlobulePolicyAdaptationInterval</TT>.
+</P>
+<P>
+Replication policies should not be re-evaluated too often, because otherwise
+the choices will be based on very few information. This will lead to
+sub-optimal performance. On the other hand, if it is set too high, then your
+system will take a long time to react to a change in access patterns.
+</P>
+<P>
+The argument is in seconds or can be suffixed with an appropriate
+denominator. Specifying a <TT>GlobulePolicyAdaptationInterval</TT> value of 0
+means that policies should never be adapted.
+</P>
+<P>
+The default is 1200 seconds (20 minutes).
+</P>
+
+<H4><A NAME="htoc79">5.5.3</A>&nbsp;&nbsp;<A NAME="GlobuleContentTraversalInterval">GlobuleContentTraversalInterval</A></H4>
+<PRE>
+GlobuleContentTraversalInterval "1 minute"
+GlobuleContentTraversalInterval "1h"
+</PRE>
+<P>
+Globule will traverse the entire content of your replicated web-site in
+order to make sure backup servers have a full copy of your site. Normally
+this is done as frequent as checking the availability of the replica
+servers, however you may want to slow down this process.
+The <TT>GlobuleContentTraversalInterval</TT> directive specifies the delay (in
+seconds) between traversing the document tree.
+</P>
+<P>
+Please note that the <TT>GlobuleContentTraversalInterval</TT> must be a multiple
+of <A HREF="#GlobuleHeartBeatInterval">GlobuleHeartBeatInterval</A>. If it is not, then it will be
+rounded up to the next multiple.
+</P>
+<P>
+Any declaration of the <A HREF="#GlobuleHeartBeatInterval">GlobuleHeartBeatInterval</A> must precede
+the declaration of a <TT>GlobuleContentTraversalInterval</TT>.
+</P>
+<P>
+This directive is provided in case the content, or rather the number of files,
+in your web-site grows very large. In case the server it not able to scan
+all documents within the period of the HeartBeatInterval then you might want
+to set the GlobuleContentTraversalInterval to a fair multiple of the time
+required to scan the filesystem. This will not degrade the scanning whether
+your files are up, just that the backup-server isn't being informed so often
+of new files that have come into existance.
+</P>
+<P>
+The argument is in seconds or can be suffixed with an appropriate
+denominator. Specifying a <TT>GlobuleContentTraversalInterval</TT> value of 0
+means that the filesystem will never be scanned. This can be used if no
+backup server is present to improve performance.
+</P>
+<P>
+The default is equal to the HeartBeatInterval, whatever it's current value
+is at configuration time / startup.
+</P>
+<A NAME="toc20"></A>
+<H3><A NAME="htoc80">5.6</A>&nbsp;&nbsp;Obscure and rare settings </H3>
+
+<H4><A NAME="htoc81">5.6.1</A>&nbsp;&nbsp;<A NAME="GlobuleAnythingFor">GlobuleAnythingFor</A></H4>
+<PRE>
+<b>GlobuleAnythingFor</b> <i>url</i> <i>secret</i>
+</PRE>
+<P>
+With this directive you can declare that your server can be a replica for any
+other server, without going into a co-operative agreementship. The shared
+password named <I>secret</I> is in fact not used in this case, nor is the
+specified <I>url</I>. These are currently place-holders for the further use
+of this directive to use a common third-party broker.
+</P>
+<P>
+Currently this directive should just be used as such:
+</P>
+<PRE>
+  ServerName world.cs.vu.nl
+  &lt;Location "/"&gt;
+    GlobuleAnythingFor "http://localhost" "geheim"
+  &lt;/Location&gt;
+</PRE>
+<P>
+While an origin server should specify to use the replica-for-everyone server
+as:
+</P>
+<PRE>
+  ServerName wereld.cs.vu.nl
+  &lt;Location "/"&gt;
+    GlobuleReplicate on
+    GlobuleReplicaIs "http://world.cs.vu.nl/http://wereld.cs.vu.nl/" "geheim"
+  &lt;/Location&gt;
+</PRE>
+<P>
+Note that:
+<UL><LI>
+The <CODE>http://localhost</CODE> should indeed wrongly not end with a slash;
+<LI>The origin site uses its own URL in the path where the replica server
+ should import the document on. This way the replica server knows where to
+ fetch the documents from
+</UL>
+</P>
+<P>
+This directive is due to change to use a broker site without notification and
+it's use is highly experimental at this stage.
+</P>
+
+<H4><A NAME="htoc82">5.6.2</A>&nbsp;&nbsp;<A NAME="GlobuleMirrorIs">GlobuleMirrorIs</A></H4>
+<PRE>
+<b>GlobuleMirrorIs</b> <i>url</i> <i>weight</i>
+</PRE>
+<P>
+With this directive you can specify that a non-Globule enabled server is to be
+used as a replica server, which should use plain old-fashion mirroring to
+fetch the content from the origin server and configuration must be done
+manually. The <I>url</I> is the address of the mirror-site, while the
+<I>weight</I> has the same function as in a regular
+<A HREF="#GlobuleReplicaIs">GlobuleReplicaIs</A> definition, but is a required argument in the
+GlobuleMirrorIs directive.
+</P>
+<P>
+Note that most of the advantages of Globule, such as consistency, merged
+access logs and accounting are lost. Therefor the use of this directive is
+highly discouraged. Globule will maintain the ability to use DNS redirection
+and makes a minimal check on the availability of the mirror-based server such
+to not redirect to a server which is obviously unavailable. It can not
+however do a full check on the availability.
+</P>
+<P>
+We encourage the use of normal Globule enabled replicas and do not actively
+support the use of mirrors like can be specified with this directive.
+</P>
+
+<H4><A NAME="htoc83">5.6.3</A>&nbsp;&nbsp;<A NAME="GlobuleDisabledReplicaIs">GlobuleDisabledReplicaIs</A></H4>
+<PRE>
+<b>GlobuleDisabledReplicaIs</b> <i>url</i> <i>secret</i>
+</PRE>
+<P>
+This directive does almost the same as the <A HREF="#GlobuleReplicaIs">GlobuleReplicaIs</A>
+directive, but the replica server being declared will never actively be used
+to redirect to. I.e. it is permanently held in the state of unavailable.
+This can be used to test replica servers, as they can authorize themselves to
+the origin server.
+</P>
+<P>
+Using the GlobuleDisabledReplicaIs directive is similar, but not the same, as
+defining a replica server with weight 0. We encourage using the weight as a
+better way to take replica's out of the loop of available replica servers to
+redirect to.
+</P>
+
+<H4><A NAME="htoc84">5.6.4</A>&nbsp;&nbsp;<A NAME="GlobuleProxyFor">GlobuleProxyFor</A></H4>
+<PRE>
+<b>GlobuleProxyFor</b> <i>url</i>
+</PRE>
+<P>
+This directive can be used in conjunction with an origin site specification to
+indicate that the server is an origin server, but the original documents do in
+fact not really reside on this server. When the server is requested to serve
+a document for which it (as an origin server!) has no longer a valid copy, it
+will try to download the document from a third-party. This third-party
+upstream server is not under a Globule controlled web-server. This approach
+is somewhat similar to proxying, but then only for a single web-site.
+</P>
+<P>
+The GlobuleProxyFor directive is used in the following way to make a copy of
+the web-site at <CODE>http://www.revolutionware.net/</CODE> on the Globule-enabled
+server wereld.cs.vu.nl:
+</P>
+<PRE>
+&lt;VirtualHost *&gt;
+  ServerName wereld.cs.vu.nl
+  &lt;Location "/"&gt;
+    GlobuleReplicate on
+    <b>GlobuleProxyFor http://www.revolutionware.net/</b>
+    GlobuleReplicaIs http://world.cs.vu.nl/
+  &lt;/Location&gt;
+&lt;/VirtualHost&gt;
+</PRE>
+<P>
+Many advantages of Globule are lost in this way, therefor it is discouraged to
+use this directive except for demonstration usage. Problems will arise with
+the translation of links and the replication of dynamic content is not really
+possible.
+</P>
+
+<H4><A NAME="htoc85">5.6.5</A>&nbsp;&nbsp;<A NAME="GlobuleOriginWeight">GlobuleOriginWeight</A></H4>
+<PRE>
+<b>GlobuleOriginWeight</b> <i>weight</i>
+</PRE>
+<P>
+When redirecting browsing users to one of the available replica servers, some
+redirection policies have be ability to redirect more often to certain replica
+servers than others. Each server is assigned a certain weight, servers with a
+heavier weight are loaded with more requests than others.
+</P>
+<P>
+The GlobuleOriginWeight directive assigns a weight to the origin server.
+Optional parameters to GlobuleReplicaIs assign the weight of each of the
+replica servers. By default the weight of each server is set to 1.
+</P>
+<P>
+The value <I>weight</I> must be an integer ranging from 0 to 32767. The
+default weight when not specified is 1. The weight parameters determin the
+spread of the load over the available web-servers. If the weight of this
+server is set at <I>n</I> and the sum of all the weights of all available servers
+is <I>s</I> then the optimal load for this server is taken to be <I>n</I>/<I>s</I> of
+the number of requests. The actual load may vary.
+</P>
+<P>
+<PRE>
+  ServerName origin.revolutionware.net
+  &lt;Location "/"&gt;
+    GlobuleReplicate on
+    GlobuleOriginWeight 1
+    GlobuleReplicaIs http://replica.revolutionware.net/  secret  9
+  &lt;/Location&gt;
+</PRE></P>
+In the above example it is declared that of each 10 requests, the origin
+should handle just 1, while the replica server should handle the remaining
+9.<BR>
+<BR>
+
+<H4><A NAME="htoc86">5.6.6</A>&nbsp;&nbsp;<A NAME="GlobuleStaticResolv">GlobuleStaticResolv</A></H4>
+<PRE>
+<b>GlobuleStaticResolv</b> <i>dns-name</i> <b>A</b>     <i>ip-address</i>
+<b>GlobuleStaticResolv</b> <i>dns-name</i> <b>CNAME</b> <i>dns-name</i>
+</PRE>
+<P>
+Globule automatically responds to DNS queries for sections for which it is an
+origin server or redirector and where DNS redirection is enabled. Any query
+to the name specified in the ServerAlias<SUP><A NAME="text8" HREF="doc011.html#note8">8</A></SUP> such an exported section is responded by
+with an A record of one or more available replica server. It is possible to
+add more entries to Globule, such that it can also respond to certain other
+queries with a fixed result. The GlobuleStaticResolv directive adds these
+entries.
+</P>
+<P>
+There are two possible entries which can be added, either A or CNAME DNS
+record types. An A record points to the indicated IPv4 address. A CNAME
+indicates an alias pointing to another Fully Qualified HostName (FQHN).
+Unlike syntaxes like Bind, the FQHN specified here should not have an dot
+appended to it and is never relative to another domain.<BR>
+All dns-name's should be fully qualified hostnames, i.e. the hostname with the
+domain name.
+</P>
+<P>
+One possible use of this is to use Globule also to resolve the origin and
+replica specific site-names. Normally one would have the <EM>specific</EM>
+site-name in the ServerName, and the <EM>generic</EM> site-name which is
+resolved by Globule as first in the ServerAlias. These <EM>specific</EM> site
+names should be static addresses of the origin and replica sites. As such
+they cannot be resolved by Globule itself and should be resolved by an
+external nameserver. This is why Globule is made only the nameserver (NS
+record) of the generic site, often www.<I>yourdomain</I>.<I>com</I>.
+GlobuleStaticResolv does allow you to make Globule the authorative nameserver
+of the entire domain by adding records like
+origin.<I>yourdomain</I>.<I>com</I>. However you must remember that all
+stand-alone redirectors must have the same data inserted into their
+configuration.
+</P>
+<P>
+Example:
+</P>
+<PRE>
+GlobuleStaticResolv origin.mydomain.com  A      1.2.3.4
+GlobuleStaticResolv replica.mydomain.com CNAME myfriend.his-isp.com
+</PRE>
+This directive is only available in case DNS redirection is compiled in (and
+into the Apache server).<BR>
+<BR>
+<A NAME="toc21"></A>
+<H3><A NAME="htoc87">5.7</A>&nbsp;&nbsp;<A NAME="sec:units"></A>Recognized units</H3>
+<P>
+For values indicating sizes in bytes you can append the following units:
+<DL COMPACT=compact><DT>
+<B>kb, kbyte, kbytes, kilobyte, kilobytes</B><DD>
+ to indicate a value in multiple of 1024 bytes, also known as a binary
+ kilobyte;
+<DT><B>mb, mbyte, mbytes, megabyte, megabytes</B><DD>
+ 1048576 bytes or 1024 kilobytes, also known as a binary megabyte;
+<DT><B>gb, gbyte, gbytes, gigabyte, gigabytes</B><DD>
+ 1073741824 bytes or 1024 megabytes, also known as a binary gigabyte;
+<DT><B>tb, tbyte, tbytes, terabyte, terabytes</B><DD>
+ 1099511627776 bytes or 1024 gigabytes, also known as a binary terrabyte.
+</DL>
+</P>
+<P>
+For values which represent a time period, you can use the following units:
+<DL COMPACT=compact><DT>
+<B>usec, usecs, microsecond, microseconds</B><DD>
+ 1/1000000 of a second;
+<DT><B>msec, msecs, millisecond, milliseconds</B><DD>
+ 1/1000 of a second;
+<DT><B>s, sec, secs, second, seconds</B><DD>
+ the default, seconds;
+<DT><B>m, min, mins, minut, minutes</B><DD>
+ for multiple of minutes, i.e. 60 seconds;
+<DT><B>h, hour, hours</B><DD>
+ for multiple of hours, i.e. 3600 seconds;
+<DT><B>d day, days</B><DD>
+ for multiple of 86400 seconds;
+<DT><B>w, week, weeks</B><DD>
+ for multiple of 604800 seconds, a.k.a. weeks.
+</DL>
+</P>
+<P>
+Additionally the string ``never'' (indicating a value of 0) is accepted by
+some Directives to turn off a certain feature.
+</P>
+<P>
+Most directives are specified as a number of seconds, therefore any value
+smaller that that (for instance 1millisecond) is rounded upwards to 1 second.
+</P>
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <HR>
+<A HREF="doc005.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc007.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

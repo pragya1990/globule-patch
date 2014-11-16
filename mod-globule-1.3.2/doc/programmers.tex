@@ -1,0 +1,42 @@
+\section{Building a distribution}
+
+No package file should exists, as ``make dist'' silently refuses to overwrite
+it
+
+\begin{verbatim}
+make clena
+make cleanest
+make ;# all configure steps using GNUmakefile
+rm mod-globule-1.3.0.tar.gz ; make dist
+cp mod-globule-1.3.0.tar.gz /home/ftp/pub/globule/auto/src
+./tools/mkinstaller.sh
+\end{verbatim}
+
+\section{Globule demo environment}
+
+If you have a fairly recent and complete Unix/Linux environment, without
+any special needs for your web-server nor any pre-installed paths where
+documents should go, but you do want to compile everything yourself, then
+the following procedure helps you out.
+
+This procedure builds a complete Globule system, including Apache server,
+PHP, and other tools is a single location.  When you have given Globule
+a try, but want to clean up for some reason, you can just delete the
+directory tree.  Preferably this end-location should be /usr/local/globule,
+but any location that is not already in use will do.
+
+The procedure is especially helpful to build demo-systems.  By downloading
+just a single shell script (a shar archive), you get all the software.
+
+
+\section{Vrije Universiteit specific notes}
+
+For the Solaris systems at the VU you need to use:
+
+  ./installer.sh --extra-php-config="--with-libxml-dir=/home/berry --with-curl=/home/berry --without-gd"
+
+The webalizer support and some monitoring will not work due to the missing GD
+library.
+You really want to use the flag --keep-build too and when upgrading the flag
+--install-demo can be used to re-install the demo globulectl if you 
+

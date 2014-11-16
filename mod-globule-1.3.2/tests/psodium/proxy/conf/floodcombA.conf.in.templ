@@ -1,0 +1,16 @@
+# To be replaced with proper path by toplevel tests Makefile
+LoadModule psodium_http_module @MODDIR@/mod_psodium.so
+
+GlobuleAdminUrl http://localhost:8056/globulectl/
+
+PsodiumProxyRequests      ON
+PsodiumClientDoubleCheckProbability     100
+PsodiumTempStorageDir     psodium-temp/
+
+# Keep out bad guys
+<PsodiumProxy *>
+	Order Deny,Allow
+	Deny from all
+	Allow from 130.37.0.0/16
+	Allow from 127.0.0.0/24
+</PsodiumProxy>

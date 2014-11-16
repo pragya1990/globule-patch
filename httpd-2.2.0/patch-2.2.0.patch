@@ -1,0 +1,306 @@
+*** ./server/mpm/winnt/child.c.orig	2005-11-17 14:39:15.000000000 +0100
+--- ./server/mpm/winnt/child.c	2006-02-28 14:51:18.000000000 +0100
+***************
+*** 328,333 ****
+--- 328,335 ----
+      fd_set main_fds;
+      int wait_time = 1;
+      SOCKET csd;
++     apr_socket_t *dummy_tcp = NULL;
++     apr_status_t status;
+      SOCKET nsd = INVALID_SOCKET;
+      int count_select_errors = 0;
+      int rc;
+***************
+*** 381,399 ****
+                               "Too many errors in select loop. Child process exiting.");
+                  break;
+              }
+!         } else {
+!             ap_listen_rec *lr;
+! 
+!             lr = find_ready_listener(&main_fds);
+!             if (lr != NULL) {
+!                 /* fetch the native socket descriptor */
+!                 apr_os_sock_get(&nsd, lr->sd);
+!             }
+!         }
+  
+          do {
+              clen = sizeof(sa_client);
+!             csd = accept(nsd, (struct sockaddr *) &sa_client, &clen);
+          } while (csd < 0 && APR_STATUS_IS_EINTR(apr_get_netos_error()));
+  
+          if (csd < 0) {
+--- 383,408 ----
+                               "Too many errors in select loop. Child process exiting.");
+                  break;
+              }
+!         } else
+!             find_ready_listener(&main_fds);
+  
+          do {
+              clen = sizeof(sa_client);
+!             if(lr != NULL) {
+!               if(lr->accept_func != NULL) {
+!                 /* Call the accept_func */
+!                 status = lr->accept_func(&dummy_tcp, lr, NULL);
+!                 if(!APR_STATUS_IS_SUCCESS(status))
+!                   ap_log_error(APLOG_MARK, APLOG_DEBUG, status, ap_server_conf,
+!                                "accept_func returned FAILURE.");
+!                 apr_os_sock_get(&csd, lr->sd);
+!               } else {
+!                 apr_os_sock_get(&nsd, lr->sd);
+!                 csd = accept(nsd, (struct sockaddr *) &sa_client, &clen);
+!               }
+!             } else {
+!               csd = accept(nsd, (struct sockaddr *) &sa_client, &clen);
+!             }
+          } while (csd < 0 && APR_STATUS_IS_EINTR(apr_get_netos_error()));
+  
+          if (csd < 0) {
+***************
+*** 415,420 ****
+--- 424,431 ----
+  {
+      apr_os_sock_info_t sockinfo;
+      int len, salen;
++     ap_listen_rec *lr;
++     SOCKET nsd;
+  #if APR_HAVE_IPV6
+      salen = sizeof(struct sockaddr_in6);
+  #else
+***************
+*** 442,447 ****
+--- 453,469 ----
+          if (context->accept_socket == INVALID_SOCKET) {
+              return NULL;
+          }
++  
++         /* Try to find out if the sd is the UDP socket */
++         for(lr=ap_listeners; lr; lr=lr->next)
++           if(lr->sd != NULL) {
++             apr_os_sock_get(&nsd, lr->sd);
++             if (nsd == context->accept_socket && lr->process_func != NULL) {
++               context->sock = lr->sd;
++               return context;
++             }
++           }
++ 
+          len = salen;
+          context->sa_server = apr_palloc(context->ptrans, len);
+          if (getsockname(context->accept_socket,
+*** ./include/ap_listen.h.orig	2005-09-29 22:44:53.000000000 +0200
+--- ./include/ap_listen.h	2006-02-28 14:32:50.000000000 +0100
+***************
+*** 32,37 ****
+--- 32,39 ----
+  
+  typedef struct ap_listen_rec ap_listen_rec;
+  typedef apr_status_t (*accept_function)(void **csd, ap_listen_rec *lr, apr_pool_t *ptrans);
++ typedef apr_status_t (*socket_process_function)(ap_listen_rec *lr, server_rec *s, apr_pool_t *ptrans);
++ 
+  
+  /**
+   * @brief Apache's listeners record.  
+***************
+*** 57,62 ****
+--- 59,69 ----
+       */
+      accept_function accept_func;
+      /**
++      * The 'process connection' function for this socket
++      */
++     socket_process_function process_func;
++     
++     /**
+       * Is this socket currently active 
+       */
+      int active;
+***************
+*** 70,75 ****
+--- 77,83 ----
+   * The global list of ap_listen_rec structures
+   */
+  AP_DECLARE_DATA extern ap_listen_rec *ap_listeners;
++ AP_DECLARE_DATA extern ap_listen_rec *ap_old_listeners;
+  
+  /**
+   * Setup all of the defaults for the listener list
+*** ./server/core.c.orig	2005-11-15 20:39:15.000000000 +0100
+--- ./server/core.c	2006-02-28 14:32:50.000000000 +0100
+***************
+*** 3821,3827 ****
+                                    apr_bucket_alloc_t *alloc)
+  {
+      apr_status_t rv;
+!     conn_rec *c = (conn_rec *) apr_pcalloc(ptrans, sizeof(conn_rec));
+  
+      c->sbh = sbh;
+      (void)ap_update_child_status(c->sbh, SERVER_BUSY_READ, (request_rec *)NULL);
+--- 3821,3841 ----
+                                    apr_bucket_alloc_t *alloc)
+  {
+      apr_status_t rv;
+!     conn_rec *c;
+!     ap_listen_rec * lr = NULL;
+!  
+!     /* If this is a socket with a process func, use that */
+!     for (lr = ap_listeners; lr; lr = lr->next) {
+!       apr_os_sock_t s1, s2;
+!       if(lr->sd != NULL && lr->process_func != NULL &&
+!          !apr_os_sock_get(&s1,lr->sd) && !apr_os_sock_get(&s2,csd) &&
+!          s1 == s2) {
+!         lr->process_func(lr, server, ptrans);
+!         return NULL;
+!       }
+!     }
+! 
+!     c = (conn_rec *) apr_pcalloc(ptrans, sizeof(conn_rec));
+  
+      c->sbh = sbh;
+      (void)ap_update_child_status(c->sbh, SERVER_BUSY_READ, (request_rec *)NULL);
+*** ./server/listen.c.orig	2005-11-10 16:20:05.000000000 +0100
+--- ./server/listen.c	2006-02-28 15:30:44.000000000 +0100
+***************
+*** 31,38 ****
+  #include "mpm_common.h"
+  
+  AP_DECLARE_DATA ap_listen_rec *ap_listeners = NULL;
+  
+- static ap_listen_rec *old_listeners;
+  static int ap_listenbacklog;
+  static int send_buffer_size;
+  static int receive_buffer_size;
+--- 31,38 ----
+  #include "mpm_common.h"
+  
+  AP_DECLARE_DATA ap_listen_rec *ap_listeners = NULL;
++ AP_DECLARE_DATA ap_listen_rec *ap_old_listeners = NULL;
+  
+  static int ap_listenbacklog;
+  static int send_buffer_size;
+  static int receive_buffer_size;
+***************
+*** 166,171 ****
+--- 166,172 ----
+          return stat;
+      }
+  #endif
++     server->process_func = NULL;
+  
+      server->sd = s;
+      server->active = 1;
+***************
+*** 175,181 ****
+  #else
+      server->accept_func = NULL;
+  #endif
+! 
+      return APR_SUCCESS;
+  }
+  
+--- 176,182 ----
+  #else
+      server->accept_func = NULL;
+  #endif
+!     server->process_func = NULL;
+      return APR_SUCCESS;
+  }
+  
+***************
+*** 250,256 ****
+      int found_listener = 0;
+  
+      /* see if we've got an old listener for this address:port */
+!     for (walk = &old_listeners; *walk;) {
+          sa = (*walk)->bind_addr;
+          /* Some listeners are not real so they will not have a bind_addr. */
+          if (sa) {
+--- 251,257 ----
+      int found_listener = 0;
+  
+      /* see if we've got an old listener for this address:port */
+!     for (walk = &ap_old_listeners; *walk;) {
+          sa = (*walk)->bind_addr;
+          /* Some listeners are not real so they will not have a bind_addr. */
+          if (sa) {
+***************
+*** 263,269 ****
+               */
+              if (port == oldport &&
+                  ((!addr && !sa->hostname) ||
+!                  ((addr && sa->hostname) && !strcmp(sa->hostname, addr)))) {
+                  new = *walk;
+                  *walk = new->next;
+                  new->next = ap_listeners;
+--- 264,271 ----
+               */
+              if (port == oldport &&
+                  ((!addr && !sa->hostname) ||
+!                  ((addr && sa->hostname) && !strcmp(sa->hostname, addr))) &&
+!                 !(*walk)->process_func) {
+                  new = *walk;
+                  *walk = new->next;
+                  new->next = ap_listeners;
+***************
+*** 299,305 ****
+          ap_listen_rec *new;
+  
+          /* this has to survive restarts */
+!         new = apr_palloc(process->pool, sizeof(ap_listen_rec));
+          new->active = 0;
+          new->next = 0;
+          new->bind_addr = sa;
+--- 301,307 ----
+          ap_listen_rec *new;
+  
+          /* this has to survive restarts */
+!         new = apr_pcalloc(process->pool, sizeof(ap_listen_rec));
+          new->active = 0;
+          new->next = 0;
+          new->bind_addr = sa;
+***************
+*** 460,471 ****
+      }
+  
+      /* close the old listeners */
+!     for (lr = old_listeners; lr; lr = next) {
+          apr_socket_close(lr->sd);
+          lr->active = 0;
+          next = lr->next;
+      }
+!     old_listeners = NULL;
+  
+  #if AP_NONBLOCK_WHEN_MULTI_LISTEN
+      /* if multiple listening sockets, make them non-blocking so that
+--- 462,473 ----
+      }
+  
+      /* close the old listeners */
+!     for (lr = ap_old_listeners; lr; lr = next) {
+          apr_socket_close(lr->sd);
+          lr->active = 0;
+          next = lr->next;
+      }
+!     ap_old_listeners = NULL;
+  
+  #if AP_NONBLOCK_WHEN_MULTI_LISTEN
+      /* if multiple listening sockets, make them non-blocking so that
+***************
+*** 573,579 ****
+  
+  AP_DECLARE(void) ap_listen_pre_config(void)
+  {
+!     old_listeners = ap_listeners;
+      ap_listeners = NULL;
+      ap_listenbacklog = DEFAULT_LISTENBACKLOG;
+  }
+--- 575,581 ----
+  
+  AP_DECLARE(void) ap_listen_pre_config(void)
+  {
+!     ap_old_listeners = ap_listeners;
+      ap_listeners = NULL;
+      ap_listenbacklog = DEFAULT_LISTENBACKLOG;
+  }

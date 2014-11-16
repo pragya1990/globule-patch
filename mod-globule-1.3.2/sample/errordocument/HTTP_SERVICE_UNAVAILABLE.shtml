@@ -1,0 +1,10 @@
+<!--#set var="TITLE" value="Service unavailable!"
+--><!--#include virtual="top.shtml" -->
+
+    The server is temporarily unable to service your
+    request due to maintenance downtime or capacity
+    problems.<p/>
+    It might be that the server is just being restarted to increase
+    capacity or is otherwise upgraded, so just try again in a few minuts..
+
+<!--#include virtual="bottom.shtml" -->

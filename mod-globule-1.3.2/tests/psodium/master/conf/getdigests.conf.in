@@ -1,0 +1,12 @@
+# Globule
+GlobuleAdminUrl http://localhost:8056/globulectl/
+GlobuleDefaultReplicationPolicy Ttl
+GlobuleDefaultRedirectPolicy    RR
+
+<Location /export>
+	GlobuleReplicate on
+	GlobuleReplicaIs http://localhost:8057/3rdparty/poolname w8w00rd
+</Location>
+
+# Psodium
+PsodiumMasterSlaveKeys conf/slavekeys-localhost.txt

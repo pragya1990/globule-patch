@@ -1,0 +1,9 @@
+# Test: Is an upper case hostname in the ExportTo handled correctly?
+<Location /export>  
+  Export ON
+	ExportTo http://LOCALHOST:8057/3rdparty/poolname password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+

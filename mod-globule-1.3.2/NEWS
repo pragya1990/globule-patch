@@ -1,0 +1,74 @@
+Globule NEWS
+  History of user-visible changes.
+  11 April 2005
+
+Copyright (C) 2003, 2004, 2005, 2006 Vrije Universiteit
+
+Please report bugs through our Bugzilla web interface, located at:
+  http://bugzilla.globule.org/
+
+Version 1.3.1
+
+* Proxy for non-Globule enabled sites
+
+* Much more conservative locking use.
+
+* Replication of dynamic pages (PHP scripts)
+
+* Database query caching.
+
+* Unix all-in-one installer.
+
+* Weighted Round-Robin and Balanced AS-pathlength redirection policies.
+
+* Allow a compressed AS path length file.
+
+* Stability improvements, bug fixes, etcetera (see ChangeLog)
+
+* Documentation review.
+
+* Weighted and balanced based redirection policies.
+
+* Utility programs globuleutil to manage report.log files and convert
+  them to standard log files for use with Webalizer.
+
+Version 1.3
+
+* Globule Broker System co-operation.
+
+* Easier upgrading.
+
+* Web interface to view your web site.
+
+* Redesign of internal engine, to improve memory usage.
+
+Version 1.2
+
+* Monitoring extension.
+
+* Disconnected master operation.
+
+* Windows port.
+
+* Different configuration method.
+
+Version 1.1
+
+* Replication policy evaluation.  Instead of a fixed replication strategy,
+  the Globule module now checks periodically whether for a document a
+  better replication strategy is more suited, and makes the switch.
+  See the ReevaluateInterval directive to control this feature which is
+  turned on by default and can be turned of using "ReevaluateInterval 120 0".
+
+* Checking for the availability of replica slaves.  Whenever your site was
+  replicated, but one of the replica slave sites was unavailable, browsing
+  users where still being redirected to those nodes.  The master site will
+  not periodically check for the slaves to be available.
+  See also the ReevaluateInterval directive.
+
+* Meta URIs are no longer used.  Which makes configuration easier, internal
+  handling simpler and a cleaner protocol.
+
+Version 1.0
+
+Initial release.

@@ -1,0 +1,5 @@
+# Make sure pSodium runs in master mode, otherwise the test won't be run.
+PsodiumMasterSlaveKeys conf/slavekeys-goodsyntax.txt
+
+# Error is: Points to file with bad syntax
+PsodiumBadSlavesFile conf/badslaves-badsyntax.txt

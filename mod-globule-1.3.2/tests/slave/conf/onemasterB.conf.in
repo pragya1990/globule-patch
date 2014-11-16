@@ -1,0 +1,4 @@
+#  Test: slave's import path has single path element
+<Location /poolname/>
+	Import REPLICA http://localhost:8056/export password1
+</Location>

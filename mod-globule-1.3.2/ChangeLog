@@ -1,0 +1,401 @@
+mod_globule 1.3.1
+-----------------
+
+* New locking scheme, allowing to share locks.
+
+* Sample html files.
+
+* Compressed data file for AS path length.
+
+* Configure script improvements; test libmysql, libz, llrint.
+
+* Configure script can run with --enable-maintainer mode.
+
+* Renamed ``globulectl'' web-interface to ``globuleadm''.
+
+* Documentation update.
+
+* Change of default TTL values for release version (ie. non-debug version).
+
+* Weighted and balanced based redirection policies.
+
+* Modularized configuration of debug-filters (non-user accessible yet).
+  in favor of dropped GlobuleMonitor support.
+
+* Throw exception usage, declaration, and catching.
+
+* ``globuleutil'' utility program implementation and included webalizer
+  support, see documentation.
+
+* Removal of old-style debug messages, debug messages at proper level.
+
+* More information logged in report.log on client.
+
+* Sample httpd-globule.conf included.
+
+* ``monitorhost'' utility to monitor multiple sites in one.
+
+* Default redirection policy set to RR iso. static.
+
+* Bug fix replication policy simulator.
+
+* Bug fix for accessing URLs ending with a / on a replica host.
+
+* Diverse other bug fixes.
+
+* Add replica's on the fly.
+  Import sections can be added on the fly for the experimental broker section.
+
+
+mod_globule 1.3.0
+-----------------
+                                                                               
+* Renamed libglobule.so to mod_globule.so.
+
+* Rewritten NetAirt and fully integrated into the core of Globule.
+  Dropped the GlobuelBGPSlotSize as the BGP table is now also stored
+  in the normal shared memory.
+
+* Dropped directives GlobuleMaxSites and GlobuleMaxReplicas.
+* Dropped directives GlobuleSite, GlobuleSiteRR, and GlobuleSiteAS.
+
+* Single piece of shared memory now used, all shared memory allocation uses
+  APR RMM.
+
+* Added pSodium to source tree.  Alpha release for this module, as it is
+  untested.  The pSodium module compiles into a seperate mod_psodium.so
+  Apache module.  By default pSodium is not compiled nor installed, but
+  can be enabled by providing the flag --enable-psodium to the ./configure
+  script.  Required OpenSSl (--with-openssl=path).
+
+* Revamping of the persistency object, in order to:
+  - prevent memory leaks at the GlobuleConf::globalpool is no longer needed.
+
+mod_globule 1.2.3
+-----------------
+
+* Fix for bug where invalidates on /subdirectory/index.html where lost
+  when the master had been restarted between first retrieval and file update.
+
+* Though --with-apache is the preferred way of indicating where your Apache
+  installation resides, you can also use --with-apxs to specify the location
+  of the Apache apxs program.
+
+* In the error_log all messages from Globule are no longer all marked as
+  errors.  This does not mean that in all cases the messages are properly
+  marked, sometimes messages are marked warnings, while they are just
+  very important informational messages.
+  Added some informational messages on the configuration of Globule during
+  startup sequence.
+
+* Fix to GlobuleReplicate off to prevent redirection for unreplicated files.
+
+* Patch to allow notification to slaves upon deletion of documents.
+
+* Date on GLOBULETRACE cookie now according to netscape standard i.s.o. RFC822.
+
+* Exporting a site without replicas will no longer cause the server to fail
+  to start.
+
+mod_globule 1.2.2
+-----------------
+
+* GlobuleDebugProfile directive now lets you specify the verbosity of the
+  debugging and informational output of Globule, instead of the unsupported
+  GlobuleMonitor lines.
+
+* DNS redirection fixed on issue #135, which occurs when Globule is used as
+  the sole resource for resolving a hostname for which it is itself the
+  authorative resolved.  Which means that during startup phase, Globule needs
+  to resolve it's own hostname.
+  Additionally stand-alone redirection was seriously broken, as no redirection
+  was ever done.
+
+* When a master was unavailable, a replica server did not respond correctly to
+  the browsing client (it returned an empty page) and cached this erroneous
+  result.
+  As a related issues, non-existend documents where not purged.
+
+* Corrections to generation of messages to the report.log.
+
+* Purging of document from cache caused segmentation faults.
+
+* Apache 2.0.50 is now then minimal required, as temporary directories need
+  to be aquired in a platform independent manner.
+	
+mod_globule 1.2.1
+-----------------
+
+* Fix for crash during startup when compiled without -ggdb caused by incorrect
+  debugging macros.
+
+* Buffer reuse problem fixes (issue #112), which surfaces afawk on Windows
+  platform due to their slow performance.  The result is that parts out
+  of pages seemed to be missing.
+
+* Fix for problem when retrieving a directory index (#122).
+
+* Bug fix which fixes a possible problem with invalidates.
+
+* Fixes for disconnected operation (issues #114, #122, a.o.).
+
+* Various minor changes.
+
+mod_globule 1.2.0
+-----------------
+
+* Disconnected operation, to allow a master to become available and Backup
+  servers will handle requests.  Stand alone redirector included.
+
+* Run-time enabling of debug messages.
+
+* Fixed bug #77: When a request to an exporting server is not succesful
+  (i.e. HTTP status < 200 || >= 300 && !304), e.g. 404 the server will now 
+  delete the Document object. Previously, it would keep the object, resulting
+  in confusing behavior where invalidates would be sent to slaves
+  for non-existent documents.
+  
+* Implemented URI comparison rules of HTTP/1.1, enabling Globule to recognize
+  equivalent URIs: e.g. 
+  	http://www.cs.vu.nl/export == HttP://www.CS.VU.nl/exp%6Frt/
+
+* Extended test suite with tests for variations of import paths.
+  Seperate new style test suite.
+
+* Fixed bug #96: Problem when using Apache User directive: Ownership of some
+  files in the Globule cachedir was not transferred to the user that will
+  run the Apache child processes, causing permission denied problems at
+  restart.
+
+* Windows support.
+
+* DNS redirection.
+
+* Major overhaul of the directives.  More flexible method to replicate based
+  on Apache Location/Directory/Files environments.
+
+* Virtual Hosts support.
+
+mod_globule 1.1.4: Bug fix release for Solaris
+---------------------------------------
+
+* To avoid concurrency problems with gethostbyname.
+  and other Portability issues for Solaris.
+
+mod_globule 1.1.3rc1: Bug fix release
+---------------------------------------
+
+* Attempt to fix bug #99: All pools used in our code are now of class AprPool.
+  AprPool has been rewritten to (hopefully) prevent process crashes caused
+  by problems with the cleanup functions of apr_pool_t pools. In addition, 
+  The http/HttpRequest class's connect() call will now timeout if setting up
+  the connection takes too long. This caused an importing server to stall
+  request handling for a certain partition of the documents available if
+  something went wrong at the exporting server during import.
+
+* Extra concurrency control added.
+
+* Internal improvements.
+
+
+mod_globule 1.1.2: Bug fix release
+---------------------------------------
+
+* Re-fixed where invalidates which were not accepted by the security module.
+* Fix for problems with the adaptation module.
+* The heartbeat is now done in the child processes.
+* Shortened the time to recognize a server being down when a timeout needs
+  to occur.
+
+
+mod_globule 1.1.1: Bug fix release
+---------------------------------------
+
+* Patch for Bug #86, which prevents multiple ImportFrom directives
+  in the configuration.
+* Fix for problem where document adaptation was based only on the
+  cost function of the first document.
+* Fix for invalidates which were not accepted by the security module
+  because port 80 was included in the URL.
+
+
+mod_globule 1.1.0: First adaptive replication release
+-----------------------------------------------------
+
+* Periodic automatic run-time replication policy adaptation by means of
+  simulating the request pattern of the past period.
+
+* Detection of the availability of slave replicas to avoid direction
+  to a mis-configured server or a slave server which is down.
+
+* Support for compilation and packaging on FreeBSD and Debian.
+
+* Framework for monitoring the server (visible request tracking bug 29).
+
+* Fixes for the invalidation policy (bugs 78, 79): Due to bug #79 an 
+  exporting Globule would delete its Document object after an error occured 
+  when invalidating a replica. This causes an exporting server to forget about 
+  *all* replicas for that document, resulting in inconsistencies.
+
+* Removed the MetaURIs, invalidations and reporting are now send through
+  SIGNAL and REPORT HTTP requests.
+  server to do request processing for an excluded document.
+
+* Fixed bug #69: A replica server will now set a PURE_PROXY policy for any
+  documents that the master server returns that are not actively managed by
+  the master Globule module. This includes the generated document indices.
+  
+* A replica server will not set a last-modified header if the master
+  did not return one ;o)
+
+* Fixed bug #65: Docs now readable on-line and off-line with Internet 
+  Explorer.
+
+* Fixed bug #64 and #66: Offline updates to documents are now detected,
+  unless they are made concurrently with the exporting server shutting
+  down.
+
+* Fixed bug #41: Server now warns about multiple ImportFrom's in a
+  GlobuleImport and the occurence of multiple GlobuleExport's (only one
+  allowed).
+
+* Fixed bug #76: AS-based redirection on Solaris 8 did not work due to
+  the client socket address not being set properly.
+
+* Various other bug fixes.
+
+
+
+mod_globule 1.0.1: Bug fix release
+----------------------------------
+
+* Fixed problem with UserDir functionality: Accessing /~user/ on an
+  exporting site would crash the server.
+
+* Added warning message for people trying to replicate a non-Globule site.
+
+
+mod_globule 1.0.0: First public release
+---------------------------------------
+
+* Changed configure.in to get a correct version number on libglobule.so.
+
+* Reduced error_log output in level 3: less info on resource management.
+
+* Updated documentation.
+
+
+
+mod_globule 0.9: Fifth internal release
+---------------------------------------
+
+* First version of proper documentation. 
+
+* Fixed bug 47: Warnings during compilation of mod_netairt.c
+
+* Fixed bug 48: Replication policy now always set to default, which is
+  Invalidate.
+
+* Fixed bug 49: Outdated TODO file removed.
+
+* Partially fixed bug 51:  Headers from master now semi-properly copied over
+  the client response. More needs to be done.
+
+* Fixed bug 52: A bug in how we used the call-function-when-pool-deleted
+  caused child processes forked to run e.g. a cgi-bin script to crash.
+
+
+
+mod_globule 0.8: Fourth internal release
+----------------------------------------
+
+* Fixed bug 26+28: The directives have been renamed and there is now
+  a single password for each (master,slave) pair.
+
+* Fixed bug 27: The master will now refuse to deliver to a slave requesting 
+  a URL that matches the master's DoNotReplicate directives.
+
+* Fixed bug 32: error_log contains error message on auth failure. Apache
+  returns std. server error HTML for 401.
+
+* Fixed bug 40: We now make sure the permissions on global mutexes are
+  set correctly, such that locks actually work when a server is started
+  as root and then spawns non-root children.
+
+* The GlobuleLockCount directive can now be used without also setting
+  the GlobuleCacheDir directive (copy 'n paste bug).
+
+* Fixed a bug showing up in servers not running port 80. When a slave
+  requests / from the master, mod_dir.c will try to turn this into
+  /index.html or something. In the process, it appears to forget to
+  propagate the port number of the original request, resulting in
+  an authentication failure for the slave.
+
+
+mod_globule 0.7: Third internal release
+----------------------------------------
+* Fixed bug 23: Module now compiles on Solaris 5.8.
+
+* Fixed bug 24: Documentation now says the 'configure' parameter is 
+  --with-apache, not --with-apache-dir
+
+* Fixed bug 25: Compile flag -Wmissing-declarations omitted for C++ files.
+
+* Fixed bug 31: Globule now works properly with a slave and master running
+  on port 80. Globule did not properly handle port-less URIs.
+
+
+mod_globule 0.6: Second internal release
+----------------------------------------
+* Number of OS mutexes used by Globule now configurable via GlobuleLockCount
+  directive.
+
+* We no longer use apr_temp_get_dir() to allow Apache versions < 2.0.48.
+
+* We now allocate only 5 MB of shared memory (was 64 MB) by default.
+
+* Simpler password scheme where there is a password pair for each slave:
+  A master password by which the master authenticates itself to the slave
+  and a slave password by which the slave authenticates itself to the master.
+
+* No longer crashes when Globule directives are used inside VirtualHost
+  directives (note: Globule cannot at the moment be used with VirtualHosts).
+
+* The ownership of Globule's cache directories is changed to the user that
+  will run Apache (i.e., the user specified in the directive User).
+
+* Method for installing 2 Apache sites was flawed, removed from documentation.
+
+* HTTP Errors generated at the master Globule are now passed on to the slave's 
+  client.
+
+* Removed limitations on the URI prefixes that can be used in GlobuleMaster and
+  GlobuleSlave directives. E.g. / is now allowed for both masters and slaves.
+  See documentation for details.
+
+* New Globule directive "DoNotReplicate" that allows certain paths to be
+  excluded from replication. Particularly useful for a master exporting
+  / to slaves (e.g. to exclude /cgi-bin)
+
+* Flood tests, that is, tests that do many concurrent requests on Globule
+  are now part of the test suite.
+
+* More code sharing in test suite.
+
+* All documents that are found on disk after a server reboot are now
+  reactivated, such that they can register for file updates if their policy
+  requires it (e.g. invalidation).
+
+* Slave now returns HTTP 301 moved when a trailing slash is missing on
+  an URI pointing to a directory.
+
+* Solved bug that sometimes caused Globule to crash after processing a request
+  (shared memory database of mod_netairt was not always allocated).
+
+
+
+mod_globule 0.5: First internal release
+---------------------------------------
+* NetAirt integrated
+* Inter-server authentication
+* Added test suite

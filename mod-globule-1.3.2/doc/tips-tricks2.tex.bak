@@ -1,0 +1,289 @@
+\section{Advanced Usage\label{sec:advanced}}
+
+\subsection{Using port 80 without root privilege\label{sec:advanced-port53}}
+
+Most users prefer URLs in the form of
+\verb!http://www.revolutioware.net/! rather than
+\verb!http://www.revolutioware.net:8333/!. However, standard URLs
+require Apache to run on port 80, which in Unix can only be used to
+root. Similarly, it is impossible to run a DNS redirector without
+accessing port 53, which also requires root privilege. 
+
+In many cases, running Apache as root is not an option, for example
+because the machine is administered by another person that the pone
+running the server. This section explains how, with minimum help from
+the systems administrator, one can run a server on standard ports
+\emph{without having root privileges}.
+
+The idea is called port forwarding. It works the following way: we are
+going to start Globule on non-standard ports (e.g., HTTP on port 8333
+and DNS on port 5353). Then, we will ask the operating system to
+forward any traffic it receives on the standard ports (80 and 53) to
+the non-standard ports. That way, from the outside the server will
+appear to be running on the standard ports. On the other hand, from
+the inside of the machine it will be running on non-privileged ports,
+so it can be started as a non-administrator user. 
+
+Note that such a setup will \textbf{not} work if some other programs
+are already using the standard ports. For instruction on how to do
+this, read Section~\ref{sec:advanced-multipleip}.
+
+Setting up the port forwarding does require some cooperation from the
+system administrator. But this is a one-time operation, after which no
+further maintenance from root is required.
+
+Be warned, though, that this setup probably works \textbf{only in
+  recent Linux systems}. Linux kernels prior to version 2.4.x will not
+support this. Non-Linux operating systems may have alternative ways to
+perform port-forwarding. As long as all traffic (including the traffic
+exchanged within the system) can be redirected to another port, the
+same effect with Apache can be achieved and the remaining instructions
+should be the same.
+
+
+%Although this does not directly have to do with Globule, it is useful
+%in the context of using Globule at external partners.  Many times, one
+%would like to run Apache with Globule at external sites, to which one
+%is not given root access.  The main reason root access is needed is
+%for Apache to bind to port 80.  Running on port 80 is normally already
+%preferred as this is the default port for the HTTP protocol so users
+%can use ``normal'' URLs.
+
+%Globule adds another need in case DNS redirection is used.  With DNS
+%redirection all Apache servers used to serve a single web-site must
+%run on the same port.  Since most of the time one wants the web-site
+%to be available under a simple URL (such as
+%http://www.revolutioware.net/) and not using some non-standard port
+%number people have to guess (e.g.
+%http://www.revolutionware.net:8080/), one wants to run all Apache
+%servers on port 80.  As some may be external servers without root
+%access this is not possible.
+
+%One possibility would be for administrators of the external sites to install
+%Apache and Globule.  Through possible, it is annoying that for every
+%configuration change, restart or new version of Globule we have to go to the
+%system administrator.  Additionally administrators aren't keen on maintaining
+%non-standard software.
+
+%If the administrator is willing to setup port forwarding than it is possible
+%to run Apache as a normal user without administrator rights on a untrusted
+%port (i.e. above 1000) but make it appear as if it runs on port 80.
+
+
+\paragraph{Port forwarding setup}~\\
+
+Setting up port forwarding is a matter of two commands to be issued by
+root. To forward traffic addressed to port 80 into port 8333, use
+this:
+
+\begin{Verbatim}
+iptables -t nat -A OUTPUT     -p tcp --dport 80 -j DNAT --to-destination :8333
+iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination :8333
+\end{Verbatim}
+
+The PREROUTING rule is used to forward traffic coming into the
+computer through the network cards, while the OUTPUT rule is used for
+traffic exchanged within the system.
+
+The traffic starts being forwarded as soon as the commands are
+executed. To retain the port forwarding between system reboots it may
+be necessary to add them to the startup sequence. Some Linux
+distributions actually store the rules during a normal shutdown and
+restore them when the system is restarted.  Others require the rules
+to be added to a startup file somewhere in \verb!/etc/rc.d/!.
+
+\paragraph{Apache configuration}~\\
+
+With port forwarding in place, the task for the administrator is
+finished.  However naively configuring Apache to run on port 8333 will
+cause problems.  The reason is, is that even a non-Globule Apache
+sometimes needs to generate URLs which refer to itself.  With Globule
+this is even more widespread as Globule actively accesses itself and
+the different Globule servers access each other since replica servers
+retrieve the original pages from the origin server and the origin
+server probes and informs replica servers.  
+
+We need to trick Apache and Globule into generating URLs on the
+standard port (i.e., 80), even though the server actually runs on a
+non-standard port (8333).
+
+The safest and easiest way to accomplish this is to first write the
+configuration file(s) \verb!httpd.conf! as if Apache would run on port
+80. In particular, the \verb!Listen!, \verb!ServerName!,
+\verb!GlobuleAdminURL!, \verb!GlobuleReplicaIs!,
+\verb!GlobuleReplicaFor!/ and related directives should \emph{not}
+mention the non-standard port.
+
+Then, just change the \verb!Listen! directive from \verb!Listen 80!
+into \verb!Listen 8333!. You are done!
+
+\subsection{Running multiple servers on the same port (using different IP addresses)~\label{sec:advanced-multipleip}}
+
+A useful extension is to run two instances of Apache on the same
+machine, such as one normal Apache installation (started as root) and
+an experimental Globule setup. The problem is, it is impossible to run
+two programs reachable with the same IP address and the samee port
+number.
+
+The simplest solution is to run both servers on different port
+numbers. No advanced setup is required to do that.
+
+Alternatively, assuming that your machine has multiple IP addresses,
+then each server can be bound to one of these addresses. A machine can
+have multiple addresses for two reasons: (i) it has multiple network
+cards (each network card will have its own IP address); or (ii) it has
+a modern network card which can define IP aliases.
+
+In any case, it is necessary to define two machine names, each of
+which will be resolved into one of the IP addresses (see
+Section~\ref{sed:dns-redir} on how to do that).
+
+
+%Both of them will run on port 80, but using different IP
+%numbers, so only the traffic to one of them needs to be forwarded to a
+%different port as achieved by:
+%\begin{Verbatim}
+%iptables -t nat -A OUTPUT --dst 130.37.193.70 -p tcp --dport 80 -j DNAT --to-destination :8888
+%iptables -t nat -A PREROUTING --dst 130.37.193.70 -p tcp --dport 80 -j DNAT --to-destination :8888
+%\end{Verbatim}
+
+
+Each of the Apache installations now needs to bind to their own
+specific IP address, otherwise we wouldn't be able to access them both
+under port 80. This is done in the \verb!Listen! directive of Apache.
+Suppose the primary address of the host is 130.37.198.252 and it has a
+second IP address 130.37.193.70 to be used by the Globule installation
+of Apache. Use this directive in the first server:
+
+%The standard Apache would bind using:
+
+\begin{Verbatim}
+Listen 130.37.198.252:80
+\end{Verbatim}
+
+and this directive in the second server:
+
+\begin{Verbatim}
+Listen 130.37.193.70:80
+\end{Verbatim}
+
+Then, just make sure the domain names used in the \verb!ServerName!
+directives under which each of the servers is reached actually point
+to the right IP address.
+
+
+
+\subsection{Running a DNS redirector without root privilege\label{sec:advanced-port53}}
+
+Similar to HTTP servers running normally on port 80, which is
+privileged, DNS servers must run on privileged port 53. The situation
+here is even worse, as unlike HTTP servers, DNS does not allow for
+servers to run on non-standard ports at all.
+
+A procedure similar to what is described in
+Section~\ref{sec:advanced-port80} can be used to forward DNS lookups
+from the standard port to a non-standard port.
+
+DNS lookups can be carried over TCP as well as UDP, so we need to
+forward ports for both protocols:
+
+\begin{Verbatim}
+iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination :5353
+iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination :5353
+iptables -t nat -A PREROUTING -p tcp --dport 53 -j DNAT --to-destination :5353
+iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to-destination :5353
+\end{Verbatim}
+
+%You might add a \verb!--dst 130.37.193.70! predicate when doing this
+%on an installation with two Apache servers, or when a BIND is already
+%present and bound only to the first address (see next subsection).
+
+Now Globule needs to be told that it should respond to DNS lookups on
+the non-default port 5353 instead of port 53. Insert this next just
+\emph{before} the first \verb~RedirectionMode! directive in your
+configuration file:
+
+\begin{Verbatim}
+GlobuleDNSRedirectionAddress :5353
+\end{Verbatim}
+
+%or if you used the \verb!--dst 130.37.193.70!:
+
+%\begin{Verbatim}
+%GlobuleDNSRedirectionAddress 130.37.193.70:5353
+%\end{Verbatim}
+
+
+\subsection{DNS redirection in the presence of BIND}
+
+If a machine already runs a DNS server, then the DNS is necessarily
+bound to port 53. This means that it becomes impossible to start a DNS
+redirector next to it, as a DNS redirector also needs to be bound to
+port 53.
+
+If the first DNS server is running the
+\footahref{http://www.isc.org/sw/bind/}{Bind} software, then you can
+use the forwarding feature of Bind to make both servers coexist. In
+the following setup, \emph{all DNS requests} will be received by the
+Bind server.  Bind will then \emph{proxy} requests to the DNS
+redirector if necessary.
+
+%When doing the port forwarding as described earlier and you already
+%have a running BIND, you would again need two IP addresses.  Forward
+%only the queries directed to the second IP address using the rules
+%with the \verb!--dst!  predicate and let BIND handle all the queries
+%directed to the primary IP address.  Binding BIND to selective IP
+%addresses is done using the following snippet in the
+%\verb!named.conf!:
+
+%\begin{Verbatim}
+%options {
+%  listen-on { 130.37.198.252/0; 127.0.0.1/0 };
+%};
+%\end{Verbatim}
+
+
+%The alternative is more complicated, but has the advantage that you
+%can leave BIND responding to queries on all interfaces.  Instead of
+%using a \verb!listen-on! and <em>without</em> any port forwarding of
+%port 53 using iptables, follow the following procedure;
+
+Imagine that you want to use DNS redirection for the generic name
+\verb!www.revolutionware.net!.
+
+First, register the name \verb!www.revolutionware.net! so that it is
+being resolved by your machine, as described in Section~\ref{sec:xxx}.
+
+Second, you must instruct your Bind server to forward requests to the
+Globule redirector. Insert this in your \verb!named.conf!
+configuration file:
+
+\begin{Verbatim}
+zone "www.revolutionware.net" IN {
+  type forward;
+  forwarders { 127.0.0.1 port 5353; };
+};
+\end{Verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Question: I suspect that using IP 
+%%%%% address 127.0.0.1 here will work. 
+%%%%% This needs to be checked.
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+Finally, you must configure your Globule DNS redirector for DNS
+redirection as described in Section~\ref{sec:xxx}. Before starting
+Globule, update the \verb!httpd.conf! configuration file to instruct
+Globule run its DNS redirector on port 5353. This is done by inserting
+the following just \emph{before} the first \verb~RedirectionMode!
+directive in your \verb!httpd.conf!  configuration file:
+
+\begin{Verbatim}
+GlobuleDNSRedirectionAddress :5353
+\end{Verbatim}
+
+You can now start your Globule server.
+
+
+
+

@@ -1,0 +1,4 @@
+# Test: Is an superfluously escaped character the Import REPLICA handled correctly?
+<Location /3rdparty/poolname/>  
+	Import REPLICA http://localhost:8056/exp%6Frt password1
+</Location>

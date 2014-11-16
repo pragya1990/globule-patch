@@ -1,0 +1,8 @@
+
+This 't' directory exists to handle a version of the Apache::Test module
+that doesn't allow test directories other than 't'. The TEST.PL script
+was placed here for no particular reason, other than that it usually is
+in the 't' directory.
+
+	Arno, 2003-11-03
+	

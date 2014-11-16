@@ -1,0 +1,7 @@
+- A-synchronous methods need a REPLY statement too, to avoid a memory leak.
+- Bad identifier scanning for name mangling tries to mandle identifiers after
+  the dot "." operator as well.  However these field names should not be
+  mangled.
+- After a SEND, WAIT or RECV statement, you need to place an additional
+  semi-colon (in some cases, but to be sure use them always) because of a
+  bug in de code-rewrite transformation.

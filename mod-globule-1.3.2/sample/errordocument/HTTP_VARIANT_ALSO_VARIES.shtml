@@ -1,0 +1,8 @@
+<!--#set var="TITLE" value="Variant also varies!"
+--><!--#include virtual="top.shtml" -->
+
+    A variant for the requested entity
+    is itself a negotiable resource.
+    Access not possible.
+
+<!--#include virtual="bottom.shtml" -->

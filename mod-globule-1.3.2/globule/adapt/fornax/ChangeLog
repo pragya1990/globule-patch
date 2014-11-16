@@ -1,0 +1,14 @@
+- Counting the linenumbers while using literal program text
+  using backquotes not correct, such that when you use backquoted
+  literals and get a parse error, then the line number is correct.
+- Linenumbers are now inserted in the generated code by using the #line
+  preprocessor directive.  These point to the original source code.
+- Renamed fornax::System.start() to fornax::System.run(Time until=infinite).
+  This allows you to run until a certain time point.  The time step to the
+  first event after the time period is made, but the event will only be
+  scheduled, not executed.
+- Events can be directly inserted when the simulation has not yet been
+  started or is paused using a method in the entity class for each
+  signal event queue named send_<queuename>(t,...).  The t parameter is
+  the time for which the event is to be scheduled, after this the arguments
+  to the event data follows.

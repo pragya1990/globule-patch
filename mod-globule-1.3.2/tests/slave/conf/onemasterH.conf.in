@@ -1,0 +1,4 @@
+# Test: Is an upper case hostname in the Import REPLICA handled correctly?
+<Location /3rdparty/poolname/   >  
+	Import REPLICA http://LOCALHOST:8056/export password1
+</Location>

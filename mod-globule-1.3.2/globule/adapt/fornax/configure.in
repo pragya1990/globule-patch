@@ -1,0 +1,86 @@
+AC_INIT()
+AC_CANONICAL_SYSTEM
+AM_INIT_AUTOMAKE(fornax, 0.1)
+AM_CONFIG_HEADER(config.h)
+AC_PREFIX_DEFAULT(/dev/null)
+
+AM_WITH_DMALLOC
+
+AC_ARG_ENABLE(debug,
+[--enable-debug     Turn on debuging],
+[case "${enableval}" in
+  yes) debug=true
+    CFLAGS="-g -DDEBUG"
+    CXXFLAGS="-g -DDEBUG"
+    AC_SUBST(CFLAGS,[$CFLAGS])
+    AC_SUBST(CXXFLAGS,[$CXXFLAGS])
+    ;;
+  no) debug=false ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+esac],[debug=false])
+AM_CONDITIONAL(DEBUG, [test x$debug = xtrue])
+
+AC_ARG_ENABLE(optimize,
+[--enable-optimize  Control optimization],
+[case "${enableval}" in
+  no) optimize=false ;;
+  yes) optimize=true
+    CFLAGS="$CFLAGS -O3 -DNDEBUG"
+    CXXFLAGS="$CXXFLAGS -O3 -DNDEBUG"
+    AC_SUBST(CFLAGS,[$CFLAGS])
+    AC_SUBST(CXXFLAGS,[$CXXFLAGS])
+    ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-optimize) ;;
+esac],[optimize=normal])
+AM_CONDITIONAL(OPTIMIZE, [test x$optimize = xtrue])
+
+AC_PROG_CC
+AC_PROG_CXX
+
+if test x$debug != xfalse ; then
+  if test x$GCC = xyes ; then
+    CFLAGS="-ggdb -Wall -DDEBUG"
+    CXXFLAGS="-ggdb -Wall -DDEBUG"
+  else
+    CFLAGS="$CFLAGS +w"
+    CXXFLAGS="$CXXFLAGS +w"
+  fi
+  AC_SUBST(CFLAGS,$CFLAGS)
+  AC_SUBST(CXXFLAGS,$CXXFLAGS)
+fi
+
+AC_ARG_ENABLE(profile,
+[--enable-profile   Turn on profiling],
+[case "${enableval}" in
+  yes) profile=true
+    if test x$GCC = xyes ; then
+      CFLAGS="$CFLAGS -pg"
+      CXXFLAGS="$CFLAGS -pg"
+    else
+      CFLAGS="$CFLAGS -p"
+      CXXFLAGS="$CFLAGS -p"
+    fi
+    AC_SUBST(CFLAGS,[$CFLAGS])
+    ;;
+  no) profile=false ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-profile) ;;
+esac],[profile=false])
+AM_CONDITIONAL(PROFILE, [test x$profile = xtrue])
+
+AC_HEADER_STDC
+AC_PROG_INSTALL
+AM_PROG_LIBTOOL
+dnl AM_FUNC_STRTOD
+AC_PROG_MAKE_SET
+AM_PROG_LEX
+AC_PROG_YACC
+
+AC_LANG_CPLUSPLUS
+AC_CHECK_HEADERS(strings.h unistd.h math.h getopt.h)
+AC_CHECK_FUNC(getopt_long)
+AC_DEFINE([HAVE_LRINT], [], [lrint function])
+AC_DEFINE([HAVE_GETOPT_LONG], [], [getopt_long function])
+AC_CHECK_FUNC(lrint)
+dnl AC_C99_FUNC_LRINT
+
+AC_OUTPUT(Makefile)

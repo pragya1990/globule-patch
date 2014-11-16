@@ -1,0 +1,95 @@
+\documentclass[10pt,twoside]{article}
+
+\usepackage{a4}
+\usepackage[obeyspaces]{url}
+\usepackage{graphicx}
+\usepackage{hevea}
+\usepackage{fancyvrb}
+
+\def\section{\@startsection{section}{1}
+{\z@}{-2.5ex plus -0.5ex minus -0.1ex}{0.5ex plus 0.1ex}{\large\bf}}
+\def\subsection{\@startsection{subsection}{2}
+{\z@}{-2.25ex plus -0.3ex minus -0.2ex}{0.05ex plus 0.05ex}{\normalsize\bf}}
+\def\subsubsection{\@startsection{subsubsection}{3}
+{\z@}{-2.25ex plus -0.3ex minus -0.2ex}{0.05ex plus 0.05ex}{\normalsize\sc}}
+\def\paragraph{\@startsection{paragraph}{4}
+{\z@}{2ex plus 0.5ex minus 0.1ex}{-0.7em}{\normalsize\it}}
+
+\def\@listi{\topsep 0.4ex \parsep 0pt \itemsep \parsep}
+\topsep 0.4ex \partopsep 0pt \itemsep 0pt \parsep 0pt
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+ \topsep 0pt \parsep 0pt \itemsep \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+ \parsep \z@ \topsep 0pt \partopsep 0pt \itemsep \topsep}
+
+\setcounter{tocdepth}{1}
+\setcounter{cuttingdepth}{1}
+\ifhevea
+\newcommand{\l}{l}
+\newcommand{\vfill}{}
+\tocnumber
+\htmlprefix{Globule User Manual: }
+\newenvironment{p}{}{\par}
+\clubpenalty=10000
+\widowpenalty=10000
+\fi
+
+\title{Issues and Troubleshooting Guide}
+\date{Version 1.3.0
+  \ifhevea \begin{rawhtml}</H3> 
+<H3 ALIGN=center>\end{rawhtml} \else \\ \fi
+  \ahrefurl{http://www.globule.org/}}
+\author{\ahref{\url{http://www.halderen.net/}}{Berry~van~Halderen}}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\cleardoublepage
+
+\parindent 0pt
+\parskip 1em
+
+\section{Introduction}
+
+This document describes some more and less common issues on installing,
+configuring and using Globule, which are not classified as bugs or
+erroneous operation of Globule/Apache.
+
+This document is rather unstructured, as it sometimes handles multiple and
+relates issues at the same time.
+
+\section{Issues regarding installation}
+
+\subsection*{Installer doesn't work.}
+
+\begin{itemize}
+\item Check that you aren't running the installer.sh from the same directory
+as you want to install the globule system to.
+
+The installer script clears out the destination directory.
+
+\item Check out that your TMP and TMPDIR environment variables aren't set to a (sub)directory of your installation destination directory.
+
+The installer script clears out the destination directory.  Configure scripts
+aren't able to run without a temporary scratch directory.
+
+\end{itemize}
+
+\item Guillaume's laptop hasn't got bison/lex/flex nor curl needed for php
+
+if [ "$TMP" = "$HOME/tmp" -o "$TMPDIR" = "$HOME/tmp" ]; then
+  echo "cannot work with this setup"
+else
+  cd /tmp
+  wget -O installer.sh 'http://world.cs.vu.nl/pub/globule/installer.sh'
+  chmod u+x installer.sh
+  ./installer --keep-build --extra-php-config="--disable-dba" 2>&1
+  | tee installer.log
+fi
+
+./configure --prefix=/home/berry --with-apxs2filter=/home/berry/bin/apxs --disable-cgi --enable-safe-mode --with-gd=/home/berry --with-curl=/home/berry --with-mysql=/home/berry --with-mysqli=/home/berry/bin/mysql_config --with-mysql-sock=/home/berry/var/mysql.sock --disable-static --disable-dbase --disable-dba
+
+--disabel-dba doesn't work, option has to be removed from installer.sh

@@ -1,0 +1,4 @@
+# Test: master exports all
+<Location /3rdparty/poolname>
+	Import REPLICA http://localhost:8056/ password1
+</Location>

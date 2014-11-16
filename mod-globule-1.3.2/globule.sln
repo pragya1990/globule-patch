@@ -1,0 +1,47 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mod_globule", "mod_globule\mod_globule.vcproj", "{1062A715-80AA-4533-8B64-4C91014D6842}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mod_psodium", "mod_psodium\mod_psodium.vcproj", "{1062A715-80AA-4533-8B64-4C91014D6842}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "auditor", "mod_psodium\auditor\auditor.vbproj", "{587ECDB8-E898-4B21-A892-A66331713711}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Debug DNS Redirection = Debug DNS Redirection
+		Release = Release
+		Release DNS Redirection = Release DNS Redirection
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug.ActiveCfg = Debug|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug.Build.0 = Debug|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug DNS Redirection.ActiveCfg = Debug DNS Redirection|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug DNS Redirection.Build.0 = Debug DNS Redirection|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Release.ActiveCfg = Release|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Release.Build.0 = Release|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Release DNS Redirection.ActiveCfg = Release DNS Redirection|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Release DNS Redirection.Build.0 = Release DNS Redirection|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug.ActiveCfg = Debug|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug.Build.0 = Debug|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug DNS Redirection.ActiveCfg = Debug DNS Redirection|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Debug DNS Redirection.Build.0 = Debug DNS Redirection|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Release.ActiveCfg = Release|Win32
+		{1062A715-80AA-4533-8B64-4C91014D6842}.Release DNS Redirection.ActiveCfg = Release DNS Redirection|Win32
+		{587ECDB8-E898-4B21-A892-A66331713711}.Debug.ActiveCfg = Debug|.NET
+		{587ECDB8-E898-4B21-A892-A66331713711}.Debug.Build.0 = Debug|.NET
+		{587ECDB8-E898-4B21-A892-A66331713711}.Debug DNS Redirection.ActiveCfg = Debug|.NET
+		{587ECDB8-E898-4B21-A892-A66331713711}.Debug DNS Redirection.Build.0 = Debug|.NET
+		{587ECDB8-E898-4B21-A892-A66331713711}.Release.ActiveCfg = Release|.NET
+		{587ECDB8-E898-4B21-A892-A66331713711}.Release DNS Redirection.ActiveCfg = Release|.NET
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

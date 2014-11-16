@@ -1,0 +1,13 @@
+Preferred method of installation in crontab:
+*/2 * * * * /usr/local/globule/bin/monitorhosts.sh
+30 9 * * mon /usr/local/globule/bin/monitorhosts.sh -t
+
+
+Sends SMS whether the system is still functioning every monday at 09:30.
+Upon a detected failure it will send a sms, then 180 minutes
+nothing (provided the GNU version of find can be used by the monitorhosts.sh
+script).  Then a reminder script to inform you where you are and the 
+cycle restarts.
+
+To reset a detected failure, first re-enable the failed server and
+then remove the logs/monitorhosts.lck file.

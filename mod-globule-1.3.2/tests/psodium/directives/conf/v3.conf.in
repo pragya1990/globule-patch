@@ -1,0 +1,4 @@
+# Make sure pSodium runs in master mode, otherwise the test won't be run.
+PsodiumMasterSlaveKeys conf/slavekeys-goodsyntax.txt
+
+PsodiumMasterLyingClientsFile conf/badslaves-goodsyntax.txt

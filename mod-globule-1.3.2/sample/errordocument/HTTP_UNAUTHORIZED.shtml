@@ -1,0 +1,14 @@
+<!--#set var="TITLE" value="Authentication required!"
+--><!--#include virtual="top.shtml" -->
+
+    This server could not verify that you are authorized to access
+    the URL "<!--#echo encoding="url" var="REDIRECT_URL" -->".
+    You either supplied the wrong credentials (e.g., bad password), or your
+    browser doesn't understand how to supply the credentials required.
+
+  </p><p>
+
+    In case you are allowed to request the document, please
+    check your user-id and password and try again.
+
+<!--#include virtual="bottom.shtml" -->

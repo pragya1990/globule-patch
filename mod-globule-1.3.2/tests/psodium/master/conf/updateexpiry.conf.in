@@ -1,0 +1,19 @@
+# Globule
+GlobuleAdminUrl http://localhost:8056/globulectl/
+# Need infinite lease time for proper UPDATEEXPIRY testing
+GlobuleDefaultReplicationPolicy Invalidate
+GlobuleDefaultRedirectPolicy    RR
+
+<Location /export>
+	GlobuleReplicate on
+	GlobuleReplicaIs http://localhost:8057/3rdparty/poolname w8w00rd
+</Location>
+
+# Psodium
+PsodiumMasterSlaveKeys conf/slavekeys-localhost.txt
+
+# for UPDATEEXPIRY tests
+PsodiumIntraServerAuthPassword w8w00rd
+GlobuleIntraServerAuthPassword w8w00rd
+
+PsodiumMasterAuditor localhost:8058	w8w00rd

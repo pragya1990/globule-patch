@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+<TITLE>
+Globule User Manual: 6  
+ Troubleshooting
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="doc006.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc008.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+<H2><A NAME="htoc88">6</A>&nbsp;&nbsp;<A NAME="sec:trouble"></A>
+ Troubleshooting</H2>
+<P>
+This section handles a number of trouble shooting issues, which can cause
+problems with a correct functioning of Globule and instructions on how to
+overcome obstables in some cases.
+</P>
+<A NAME="toc22"></A>
+<H3><A NAME="htoc89">6.1</A>&nbsp;&nbsp;Compatibility with other Apache modules and settings</H3>
+<P>
+In general, Globule is well-behaved and follows the Apache interface. However,
+some modules or configurations can clash. Most incompatibilities with other
+modules and settings emerge because the same environment as the origin server
+cannot be emulated on the replica host. This section surveys a number of them.
+</P>
+
+<H4><A NAME="htoc90">6.1.1</A>&nbsp;&nbsp;Modules that won't work</H4>
+<P>
+The usage of the following modules will not work when the modules are active
+on the web-site being replicates. This means that the modules can be used
+within the same server that runs Globule, just not on a web-site that is
+Globule replicated:
+</P>
+<P>
+<DL COMPACT=compact><DT>
+<B>mod_var</B><DD>&nbsp;<BR>
+Also known as type maps. Since this module can be compiled in, you might want
+to make sure the module simply isn't active. Type maps are made active with
+the line:
+<PRE>
+AddHandler type-map var
+</PRE>Type maps cannot be supported by Globule, because replica servers cannot
+determine beforehand which alternatives are available in the type map.
+<DT><B>mod_rewrite</B><DD>&nbsp;<BR>
+URLs rewriting is unsafe, and the rewriting cannot interact well with
+redirection at this moment.
+</DL>
+</P>
+
+<H4><A NAME="htoc91">6.1.2</A>&nbsp;&nbsp;Constructions that won't work</H4>
+<P>
+The following Directives and constructions will not operate well with Globule.
+</P>
+<P>
+<DL COMPACT=compact><DT>
+<B>Usage of ``DirectorySlash Off''</B><DD>&nbsp;<BR>
+By default, the Apache configuration has set the DirectorySlash option to
+true, turning it off will break DNS redirection to URLs inadvertently not
+ending with a slash, but which actually is a directory index.
+</DL>
+</P>
+<A NAME="toc23"></A>
+<H3><A NAME="htoc92">6.2</A>&nbsp;&nbsp;System resource usage</H3>
+<P>
+In Linux, if Apache/Globule crashes, it sometimes does not deallocate the
+semaphores used for process synchronization. Restarting the server may then
+fail because it cannot allocate sufficient semaphores. You can cleanup all
+semaphores using:
+</P>
+<PRE>
+ipcrm `ipcs -s | awk '(int($2)&gt;0){print"-s",$2}'`
+</PRE>
+<P>
+Use with care, especially when running as root as this will release all
+semaphores, also ones still in use by other programs (X windows amongst
+others).
+</P>
+
+<H4><A NAME="htoc93">6.2.1</A>&nbsp;&nbsp;<A NAME="sec:trouble:shmem"></A>
+ Allow high quantities of shared memory in your operating system</H4>
+<P>
+Your operating system must be configured to support the amount of shared
+memory specified in directive <A HREF="doc006.html#GlobuleMemSize">GlobuleMemSize</A>. You can check
+and set this as follows:
+</P>
+<P>
+<B>Linux:</B><BR>
+</P>
+<P>
+<OL type=1><LI>
+Multiply the values returned by the following two commands:
+<PRE>
+cat /proc/sys/kernel/shmmax
+cat /proc/sys/kernel/shmmni
+</PRE>
+<P>
+ Alternatively, if you have Perl installed, you can run: 
+</P>
+<PRE><FONT SIZE=2>echo print `cat /proc/sys/kernel/shmmax` \* `cat /proc/sys/kernel/shmmni` | perl  
+</FONT></PRE>
+<BR>
+<BR>
+<LI>The result (in bytes) should be larger than the amount you want
+Globule to allocate. If not, you can adjust them as follows:
+<PRE>
+echo 33554432 &gt; /proc/sys/kernel/shmmax
+echo 4096 &gt; /proc/sys/kernel/shmmni
+</PRE>
+when logged in as root.
+</OL>
+</P>
+<P>
+<B>Solaris:</B>
+</P>
+<P>
+<OL type=1><LI>
+Run:
+<PRE>
+sysdef -i
+</PRE><LI>Multiply the values listed for ``max shared memory segment size
+(SHMMAX)'' and ``shared memory identifiers (SHMMNI)''.
+<LI>The result (in bytes) should be larger than the amount you want
+Globule to allocate.
+<LI>If not, you can adjust them by editing <TT>/etc/system</TT> as root:
+<PRE>
+set shmsys:shminfo_shmmax=33554432
+set shmsys:shminfo_shmmni=4096
+set shmsys:shminfo_shmseg=200
+</PRE></OL>
+</P>
+
+<H4><A NAME="htoc94">6.2.2</A>&nbsp;&nbsp;<A NAME="sec:trouble:locks"></A>
+ Allow large numbers of locks in your operating system</H4>
+<P>
+Your operating system must be configured to support the number of locks
+specified in directive <A HREF="doc006.html#GlobuleLockCount">GlobuleLockCount</A>. You can check and set
+this as follows:
+</P>
+<P>
+<B>Linux:</B>
+</P>
+<P>
+<OL type=1><LI>
+Run this command: 
+<PRE>
+ipcs -l
+</PRE><BR>
+<BR>
+<LI>Under the heading ``Semaphore Limits'' there is the value ``max number
+of arrays'', which corresponds to the maximum number of (global) mutexes
+Globule can allocate.
+</OL>
+</P>
+<P>
+<B>Solaris:</B>
+</P>
+<P>
+<OL type=1><LI>
+Run this command:
+ <PRE>
+sysdef -i
+</PRE><LI>Under the heading ``IPC Semaphores'' there is the value ``semaphore
+ identifiers (SEMMNI)'', which corresponds to the maximum number of
+ (global) mutexes Globule can allocate.
+</OL>
+</P>
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <HR>
+<A HREF="doc006.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc008.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

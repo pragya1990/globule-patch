@@ -1,0 +1,61 @@
+Copyright 2003, Berry van Halderen / Vrije Universiteit Amsterdam.
+
+Please read the contents of the "BUGS" file too, otherwise programming
+models using this simulator will give problems.
+
+Compilation and Installation
+============================
+
+If you want a non-standard configuration, or need to set other installation
+parts, first look at the next section.
+For this moment, I assume you are using the GNU version of make.  The
+basic compilation is then as simple as running make from within this
+unpackaged directory.  Simply type "make" or "gmake" on some Solaris
+based systems to configure and compile the software.
+
+Configuration
+=============
+
+The basic configuration is performed by running "./configure".  However you
+may set a different installation path using the standard --prefix=...
+The type of compilation performed is controlled using three switched
+
+--enable-debug       full debugging (far to much for non-maintainer usage)
+                     is turned on.
+--with-dmalloc       turns on memory checking and leak detection, big
+                     performance hit, so only for maintainer usage.
+--disable-optimize   disabled all optimization.
+--enable-optimize    this application benefits a lot from aggressive
+                     optimization, so it should be turned on.
+
+It is currently not possible to turn debugging off, but retain debugging
+symbols AND a naming scheme for all states and events.  The latter is
+handy in debugging your simulation models, but can give upto a 50%
+performance reduction.
+
+Maintainer Builds
+=================
+
+In case of changes to the configuration or automake files, you need to
+re-build a number of files normally shipped in the distribution.  This
+is done using:
+
+    aclocal
+    autoconf
+    libtoolize --force
+    automake -a
+    autoheader
+
+In some cases you need to pass additional parameters to aclocal when it is
+in a non-default location, such as on the Vrije Universiteit.  There use:
+
+    aclocal --acdir=/usr/local/VU/globe/globe/Packages/automake/share/aclocal-1.7 -I /usr/local/VU/globe/globe/Packages/libtool/share/aclocal
+
+Writing your of simulation models
+=================================
+
+Write the main code in a file which uses the suffix .cfornax in its filename.
+Then use the cfornax compiler to translate this source into c++ source code
+using:  "cfornaxc -o filename.cc filename.cfornax".  Afterwars you can
+compile and link this source file into a program.  Add the fornax.o -lfornax
+to the link objects, e.g.: "g++ -g -o filename filename.cc fornax.o".

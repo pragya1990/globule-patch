@@ -1,0 +1,9 @@
+# Test: slave is dedicated slave, importing '/'
+<Location /export   >  
+  Export ON
+	ExportTo http://localhost:8057/ password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+

@@ -1,0 +1,44 @@
+
+		               Globule
+			       
+ 	     	      http://www.globule.org/
+      ------------------------------------------------------------
+
+Globule is a platform which allows a Web server to automatically replicate
+its documents to other Web servers, to maintain replicas consistent using
+adaptive replication policies, and to transparently redirect users to the
+best replica.  It does so by negotiating resource allocation with remote
+servers in a peer-to-peer fashion.  We designed Globule as a module for the
+Apache Web server.  Therefore, converting Web documents should require no
+more than compiling a new module into Apache and editing a configuration
+file.
+
+The originality of Globule is that is does not always use the same
+replication strategy.  In our approach, each document has its own associated
+strategy, which is automatically chosen such that it optimizes the global
+perceived performance. 
+
+The installation instructions and further documentation for mod-globule
+can be found in doc/
+
+Enjoy!
+	The Globule team
+	
+
+Globule contains the following sub-modules:
+
+pSodium    http://www.globule.org/psodium/
+
+    pSodium is a security system for replicated Web sites.  It allows replicas
+    to be placed on semi-trusted servers, which are subsequently checked by
+    pSodium to ensure they deliver the original content unmodified.  In
+    particular, pSodium does direct probabilistic, and indirect time-shifted
+    checking of replica servers.  Misbehaving slaves are automatically
+    disabled, meaning that clients will no longer be directed to them.
+
+    pSodium is implemented as an Apache module to be used in combination with
+    the Globule replication system, also an Apache module.
+
+    The installation instructions and further documentation for mod-globule
+    can be found in docs/
+

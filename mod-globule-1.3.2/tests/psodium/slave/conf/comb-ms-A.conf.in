@@ -1,0 +1,10 @@
+# Globule
+GlobuleAdminUrl http://localhost:8056/globulectl/
+
+<Location /3rdparty/poolname>
+	GlobuleReplicaFor http://localhost:8056/export w8w00rd
+</Location>
+
+# Psodium
+PsodiumSlaveID localhost:8057
+PsodiumSlavePrivateKey conf/slave1-goodsyntax.keypair

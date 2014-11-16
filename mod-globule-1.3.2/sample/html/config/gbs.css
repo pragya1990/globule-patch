@@ -1,0 +1,386 @@
+/*
+Style sheet for the Globule Broker System
+Created by: Wilfred R. Dittmer <wdittmer@cs.vu.nl>
+
+Some helpful sites:
+http://www.alistapart.com/articles/practicalcss/
+http://www.w3schools.com/css/
+http://www.thenoodleincident.com/tutorials/box_lesson/index.html
+http://www.thenoodleincident.com/tutorials/box_lesson/boxes.html
+http://www.glish.com/css/
+http://www.glish.com/css/hacks.asp
+http://validator.w3.org/
+http://chrispoole.com/tutorials/css/hacks/
+*/
+
+
+/* Set the body background to reddish */
+BODY {
+  margin:0px;
+  padding:0px;
+  background-color: #132940;
+}
+
+/* This is the Globule 3D logo at the top */
+#topImage {
+  background: #FFFFFF;
+  height: 57px;
+}
+
+/* We create a bar which contains the welcome message for the user */
+#userName {
+  padding: 5px;
+  margin-left: 135px;
+  color: white;
+}
+
+/* On the right of the userName bar we want the login/logout option.
+   Note: this must be specified BEFORE the user name is printed !
+   Otherwise it will be on the next line/give layout problems.
+*/
+#userName #loginStatus {
+  float: right;
+  text-align: right;
+  font-weight: bold;
+  margin-right: 10px;
+  color: white;
+}
+
+/* This is the options that are available to the user. Displayed
+   on the left of the screen. */
+#leftOptions {
+  float: left;
+  width: 125px;
+  padding: 5px;
+/*  overflow: auto; */
+  color: white;
+}
+
+#mainPage {
+  margin-left: 135px;
+  margin-right: 10px;
+  padding: 5px;
+  color: black;
+  background-color: white;
+  border-width: 2px;
+}
+
+#footer {
+  float:right;
+  clear: both;
+  margin-right: 5px;
+  padding: .5em;
+  color: white;
+  font-size: 10px;
+}
+
+/* The Site name */
+.Logo {
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.Title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Log out button */
+
+.LogOut {
+  background-color: transparent;
+  color: white;
+  font-weight: bold;
+  border: none; 
+  cursor: pointer;
+  cursor: hand;
+  text-align: left;
+  text-decoration:none;
+}
+
+.LogOut:hover {
+  color: red;
+}
+
+
+/* Help on words:
+   E.g: <span class="help" title="Help me">hard word</span>
+*/
+abbr, acronym, .Help {
+  border-bottom: 1px dotted #333;
+  cursor: help;
+}
+
+/* Aligns text to the right, adds bold to the font */
+.TextRight {
+  text-align: right;
+  font-weight: bold;  
+}
+
+/* Aligns text to the center */
+.TextCenter {
+  text-align: center;
+}
+
+/* Our simple table should have a margin of 5px to the left */
+.SimpleTable {
+  margin-left: 5px;
+}
+
+
+/* If you have a single table in the main page, use this one */
+/* It looks the same as MainTable, but it has no width */
+.SingleMainTable {
+  border: solid 1px black;
+  padding: 0px;
+  margin: 0px;
+}
+
+.SingleMainTable td {
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-bottom: 2px;
+  margin: 0px;
+}
+
+/* Table headers have light blue background color */
+.SingleMainTable th {
+  background-color: lightblue;
+  text-align: left;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin: 0px;
+  border-bottom: 1px solid black;
+}
+
+/* Captions of table are in italics */
+.SingleMainTable caption {
+  font-style: italic;
+}
+
+/* Hover images
+.SingleMainTable img:hover {
+  background-color: yellow;
+}
+*/
+
+
+/* Otherwise use this one. More elaborate table to use in the main pages */
+/* Wrap this in a simple <table><tr><td> your tables </td></tr></table>
+   The width is set to 100% such that all tables are as wide as the widest
+   table. */
+.MainTable {
+  width: 100%;
+  border: solid 1px black;
+  padding: 0px;
+  margin: 0px;
+}
+
+.MainTable td {
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-bottom: 2px;
+  margin: 0px;
+}
+
+/* Table headers have light blue background color */
+.MainTable th {
+  background-color: lightblue;
+  text-align: left;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin: 0px;
+  border-bottom: 1px solid black;
+}
+
+/* Captions of table are in italics */
+.MainTable caption {
+  font-style: italic;
+}
+
+.MainTable .WarningRow {
+  background-color: #ff0033;
+  border-bottom: 1px solid black;
+}
+
+.Separator {
+  background-color: lightblue;
+  border-bottom: 2px solid white;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Hover images
+.MainTable img:hover {
+  background-color: yellow;
+}
+*/
+
+/* Sneaky header, sometimes you want an extra header row, without
+   the bottom line. Use this class in a TD, keep it in sync with
+   the .(Single)MainTable hr
+*/
+.SneakyHeader {
+  background-color: lightblue;
+  text-align: center;
+  font-weight: bold;
+}
+
+
+/* use this when you have the bottom row of a table
+   with all the submit buttons.
+ */
+.SubmitRow {
+  border-top: 1px solid black;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  background-color: AliceBlue;
+}
+
+/* Alternate row colors for easier visibility */
+.EvenRow {
+}
+
+.OddRow {
+  background-color: #eeffee;
+}
+
+.GlobuleEvenRow {
+  background-color: #ffcccc;
+}
+
+.GlobuleOddRow {
+  background-color: #ff99cc;
+}
+
+.TextInput{
+  border: solid 1px;
+}
+
+/* Make our fill in fields nicer. Include the width because
+   in IE the sizes are not the same for the username and password
+   fields ! Also note that 10em; is NOT the same as 10 characters ! */
+.TextInput16 {
+  border: solid 1px;
+  width: 10em;
+}
+
+.TextInput50 {
+  border: solid 1px;
+  width: 25em;
+}
+
+
+/* Sigh, first of the differences between IE and Mozilla turn up.
+   IE uses some wicked padding to the left and the right of the text
+   in the button. You can specify the width of the button and align 
+   text to the left. But, specifying the width in Mozilla causes
+   the text to be centered, because Mozilla ignores the text-align.
+*/
+
+/* This is used for the menu on the left, not selected main menu item */
+.SubmitOption {
+  background-color: transparent;
+  color: white;
+  border: none; 
+  cursor: pointer;
+  cursor: hand;
+  text-align: left;
+  text-decoration:none;
+}
+
+/* Hover on input buttons are not supported by IE, but are on Moz. */
+.SubmitOption:hover {
+  color: #ffff00;
+}
+
+/* This is used for the sub-menu items, not selected */
+.SubSubmitOption {
+  background-color: transparent;
+  color: white;
+  border: none; 
+  cursor: pointer;
+  cursor: hand;
+  text-align: left;
+  text-decoration:none;
+}
+
+.SubSubmitOption:hover {
+  color: #ffff00;
+}
+
+/* This is used for the left menu, this item is selected */
+.SubmitOptionUnAvailable {
+  background-color: transparent;
+  color: red;
+  border: none; 
+  text-align: left;
+  text-decoration:none;
+}
+
+/* Sub menu item, this one is selected. */
+.SubSubmitOptionUnAvailable {
+  background-color: transparent;
+  color: orange;
+  border: none; 
+  text-align: left;
+  text-decoration:none;
+}
+
+/* Slick button for submitting forms in the main page. */
+.SubmitForm {
+  background-color: #ededed;
+  border: solid 1px;
+  cursor: pointer;
+  cursor: hand;
+}
+
+/* Hover on input buttons are not supported by IE, but are on Moz. */
+.SubmitForm:hover {
+  background-color: #ffff00;
+}
+
+/* Default button if there are more has extra thick border and bold text */
+.SubmitFormDefault {
+  background-color: #ededed;
+  font-weight: bold;
+  border: solid 2px;
+  cursor: pointer;
+  cursor: hand;
+}
+
+/* Hover on input buttons are not supported by IE, but are on Moz. */
+.SubmitFormDefault:hover {
+  background-color: #ffff00;
+}
+
+/* Very simple table for on the main page */
+/* The submit table entry is a button which we make blue to indicate
+   a link.
+ */
+.SubmitTableEntry {
+  background-color: transparent;
+  color: blue;
+  border: none; 
+  cursor: pointer;
+  cursor: hand;
+  text-align: left;
+  text-decoration:none;
+}
+
+/* Hover on input buttons are not supported by IE, but are on Moz. */
+.SubmitTableEntry:hover {
+  color: red;
+}
+
+
+.ErrorMessage {
+  color: yellow;
+  background-color: #ff0033;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.Information {
+  background-color: lightyellow;
+}

@@ -1,0 +1,598 @@
+#!/bin/bash
+
+case "$0" in
+/*) self=$0 ;;
+*)  self=`pwd`/$0 ;;
+esac
+
+cmd=""
+optverbose=
+optnoserial=
+optnorestart=
+optlogserver=
+optclean=
+while [ $# -gt 0 ] ; do
+  case "$1" in
+  stop)       cmd="$1" ; shift ;;
+  start)      cmd="$1" ; shift ;;
+  restart)    cmd="$1" ; shift ;;
+  check)      cmd="$1" ; shift ;;
+  restart)    cmd="$1" ; shift ;; 
+  configtest) cmd="$1" ; shift ;; 
+  graceful)   cmd="$1" ; shift ;; 
+  recycle)    cmd="$1" ; shift ;; 
+  monitorhost)
+    cmd="$1"
+    shift
+    if [ $# -gt 0 ] ; then
+      case "$1" in
+      -*) ;;
+      *) optlogserver="$1" ; shift ;;
+      esac
+    fi
+    ;;
+  generate)
+    cmd="$1"
+    shift
+    directory=.
+    if [ $# -gt 0 ] ; then
+      directory="$1"
+      shift
+    fi
+    ;;
+  installcrontab)
+    cmd="$1"
+    shift
+    if [ $# -gt 0 ] ; then
+      case "$1" in
+      -*) ;;
+      *) optlogserver="$1" ; shift ;;
+      esac
+    fi
+    ;;
+  installconf)
+    cmd="$1"
+    shift
+    break 2
+    ;;
+  webalizer)
+    cmd="webalizer"
+    shift
+    break 2
+    ;;
+  -v)
+    optverbose=1
+    shift
+    ;;
+  -c|--clean)
+    optclean=1
+    shift
+    ;;
+  --no-serial)
+    optnoserial=1
+    shift
+    ;;
+  --no-restart)
+    optnorestart=1
+    shift
+    ;;
+  *)
+    echo "unknown argument: $1"
+    exit 1
+  esac
+done
+
+pushd `dirname $0` > /dev/null
+apxs=/home/berry/globule/globule/../apache/bin/apxs
+if [ -z "$apxs" -o "$apxs" = @"APXS"@ ]; then
+  if [ -x ../bin/apxs ]; then
+    apxs=`pwd`/../bin/apxs
+  else
+    apxs=`which 2>/dev/null apxs`
+  fi
+fi
+if [ -z "$apxs" -o "$apxs" = @"APXS"@ ]; then
+  echo "$0: warning: no apxs found"
+fi
+cd ..
+basedir=`pwd`
+if [ -n "$apxs" ]; then
+  prefix="`$apxs -q PREFIX`"
+  if [ -z "$prefix" ]; then
+    prefix=$basedir
+  fi
+fi
+prefixenc="`echo $prefix | sed 's/\\//\\\\\\//g'`"
+logdir=$basedir/logs
+popd > /dev/null
+
+if [ -n "$apxs" ]; then
+  confdir=`$apxs -q SYSCONFDIR`
+  conf=`$apxs -q SYSCONFDIR`/httpd.conf
+elif [ -f etc/httpd.conf ]; then
+  confdir=`pwd`/etc
+  conf=`pwd`/etc/httpd.conf
+elif [ -f conf/httpd.conf ]; then
+  confdir=`pwd`/conf
+  conf=`pwd`/conf/httpd.conf
+elif [ -f /etc/httpd/conf/httpd.conf ]; then
+  confdir=/etc/httpd/conf
+  conf=/etc/httpd/conf/httpd.conf
+  logdir=/etc/httpd/logs
+  # cd /etc/httpd
+else
+  echo "$0: httpd.conf not found"
+fi
+confdirenc="`echo $prefix/ | sed 's/\\//\\\\\\//g'`"
+confdirenc="`echo $confdir | sed "s/^$confdirenc//"`"
+
+apversion=`/home/berry/globule/apache/bin/httpd -v | sed -e 's/^Server version: Apache\/\(.*\)$/\1/p' -e d`
+
+port="`sed < $conf 2>/dev/null -e 's/^[ \t]*[Ll][Ii][Ss][Tt][Ee][Nn][ \t]*[0-9:\.\[\]][0-9:\.\[\]]\([0-9][0-9]*\)[ \t]*$/\1/p' -e 's/^[ \t]*[Ll][Ii][Ss][Tt][Ee][Nn][ \t]*\([0-9][0-9]*\)[ \t]*$/\1/p' -e d`"
+if [ -z "$port" ]; then
+  port=80
+fi
+
+# if we wouldn't have RedHat aka Microsoft-dx, we could simply use
+# concatenate `hostname` and `domainname`.  RedHat isn't posix compliant
+# when setting the FQHN as hostname in the kernel.
+# some people even set hostname to the fqhn AND set a domainname, resulting
+# in a double domainname.
+if [ "`domainname`" = "(none)" ]; then
+  fqhn="`hostname`"
+else
+  fqhn="`hostname | cut -f1 -d .`.`domainname`"
+fi
+
+mkdirhier() {
+  if [ \! -d "$1" -a -n "$1" ]; then
+    mkdirhier `dirname "$1"`
+    mkdir "$1"
+  fi
+}
+
+SUBST="NEVER=#"
+
+case $cmd in
+
+installconf)
+
+  source=`dirname $0`/../sample/httpd.conf
+  target="`dirname $conf`/httpd-globule.conf"
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    -sample|--sample)
+      SUBST="$SUBST SAMPLE= REAL=#"
+      ;;
+    -real|--real)
+      SUBST="$SUBST SAMPLE=# REAL="
+      ;;
+    *)
+      key="`echo $1 | sed 's/\([^=]*\)=\(.*\)/\1/'`"
+      val="`echo $1 | sed 's/\([^=]*\)=\(.*\)/\2/'`"
+      eval "$key='$val'"
+      ;;
+    esac
+    shift
+  done
+
+  SUBST="$SUBST SERVERROOT=$prefix"
+  SUBST="$SUBST PREFIX=$prefix"
+  SUBST="$SUBST HOSTNAME=`echo $fqhn | cut -f1 -d .`"
+  SUBST="$SUBST DOMAINNAME=`echo $fqhn | cut -f2- -d .`"
+  SUBST="$SUBST PORT=$port"
+  SUBST="$SUBST CONFDIR=$confdirenc"
+  SUBST="$SUBST YOURDOMAIN=www.yourdomain.com"
+  SUBST="$SUBST FRIENDSDOMAIN=www.friendsdomain.com"
+  if [ -x "`$apxs -q LIBEXECDIR`/libphp5.so" ]; then
+    SUBST="$SUBST HASPHP= HASNOPHP=#"
+  else
+    SUBST="$SUBST HASPHP=# HASNOPHP="
+  fi
+  if [ "$port" = "80" ]; then
+    SUBST="$SUBST OPTPORT="
+  else
+    SUBST="$SUBST OPTPORT=:$port"
+  fi
+  if [ -n "$USER" ] ; then
+    SUBST="$SUBST USERNAME=$USER"
+  elif [ -n "$LOGNAME" ] ; then
+    SUBST="$SUBST USERNAME=$LOGNAME"
+  else
+    SUBST="$SUBST USERNAME=root"
+  fi
+  case "$apversion" in
+  2.0.*) SUBST="$SUBST APACHE20= APACHE22=#" ; ;;
+  *)     SUBST="$SUBST APACHE20=# APACHE22=" ; ;;
+  esac
+
+  ;;
+
+esac
+
+# If a key is set to the value "#" then lines that start with @key@# or
+# that start with #@KEY@ are deleted.
+# Keys with any other value are substitutes with their value
+substargs=""
+for subst in $SUBST ; do
+  key="`echo $subst | sed 's/\([^=]*\)=\(.*\)/\1/'`"
+  val="`echo $subst | sed 's/\([^=]*\)=\(.*\)/\2/' | sed 's/\\//\\\\\\//g'`"
+  substargs="-e 's/@$key@/$val/g' $substargs"
+  if [ "$val" = "#" ]; then
+    substargs="-e '/^@$key@#/d' $substargs"
+    substargs="-e '/^#@$key@/d' $substargs"
+  else
+    substargs="-e 's/^#@$key@/@$key@/g' $substargs"
+  fi
+done
+substargs="$substargs-e 's/@@/@/g'"
+
+case $cmd in
+
+monitorhost)
+
+  if [ -n "$optlogserver" ]; then
+    $basedir/bin/monitorhost --log-interval=15 \
+    --check-interval=60 --check-command="$basedir/bin/monitorhost-script.sh" \
+    --reconnect-interval=30 --server="$optlogserver" \
+    --watchdog-interval=120 --watchdog-command="$self stop" \
+    --no-log-syslog --no-log-file
+    exit $?
+  else
+    # cddir to where the lockfile should go
+    for d in run var/run var ; do
+      if [ -d $d ] ; then
+        cd $d
+        break
+      fi
+    done
+    $basedir/bin/monitorhost -L$logdir/monitorhost.log --log-interval=15 \
+      --check-interval=60 --check-command="$basedir/bin/monitorhost-script.sh"
+    exit $?
+  fi
+
+  ;;
+
+generate)
+
+  status=0
+
+  d=`pwd | sed 's/\//\\\\\//g'`
+  d=`echo $directory | sed -e "s/^\([^\/]\)/$d\/\1/" -e 's/\/\.\//\//g'`
+  f=`basename $d`
+  d=`dirname $d`
+  while [ "$d" != "/" ]; do
+    if [ -f "$d/templates/$f.tpl" ]; then
+      break
+    fi
+    f=`basename $d`/$f
+    d=`dirname $d`
+  done
+  if [ -f "$d/templates/$f.tpl" ]; then
+    if [ -n "$optverbose" ]; then
+      echo "Working template $f in $d"
+    fi
+    pushd $d > /dev/null
+    if [ -z "$optclean" ]; then
+      phpscript="require_once('Smarty.class.php');"
+      phpscript="$phpscript \$smarty = new Smarty();"
+      phpscript="$phpscript \$smarty->display('$f.tpl');"
+      if [ -x $basedir/bin/php ]; then
+        # $basedir/bin/php templates/$f.tpl > $f
+        $basedir/bin/php -r "$phpscript" > $f
+	status=$?
+      else
+        php -r "$phpscript" > $f
+	status=$?
+      fi
+    else
+      rm -f $f
+    fi
+    popd > /dev/null
+  else
+    for d in `find $directory -name templates -type d -print`
+    do
+      pushd $d > /dev/null
+      if [ -n "$optverbose" ]; then
+        echo Working templates in `pwd`
+      fi
+      files=`find . -type f -name \*.tpl -print`
+      cd ..
+      for f in $files
+      do
+        f=`dirname $f`/`basename $f .tpl`
+        f=`echo $f | sed 's/^\.\///'`
+        if [ -n "$optverbose" ]; then
+          echo "  $f"
+        fi
+        if [ -z "$optclean" ]; then
+          phpscript="require_once('Smarty.class.php');"
+          phpscript="$phpscript \$smarty = new Smarty();"
+          phpscript="$phpscript \$smarty->display('$f.tpl');"
+          if [ -x $basedir/bin/php ]; then
+            $basedir/bin/php -r "$phpscript" > $f
+	    status=$?
+          else
+            php -r "$phpscript" > $f
+	    status=$?
+          fi
+        else
+          rm -f $f
+        fi
+	if [ $status -ne 0 ]; then
+	  break
+	fi
+      done
+      popd > /dev/null
+      if [ $status -ne 0 ]; then
+	break
+      fi
+    done
+  fi
+  exit $status
+
+  ;;
+
+installcrontab)
+
+  # These are the crontab entries to be entered
+  monitorhostcommand="$prefix/bin/globulectl monitorhost"
+  webalizercommand="$prefix/bin/globulectl webalizer"
+  defaultmonitorhostinterval='*/2 * * * *'
+  defaultwebalizerinterval='5 * * * *'
+
+  # go to $prefix/etc, but only to $prefix when etc does not exist
+  cd $prefix
+  cd etc
+
+  # Make a initial backup copy of the crontab and a current one
+  if [ \! -f crontab.org ]; then
+    crontab -l > crontab.org
+  fi
+  crontab -l > crontab.bak
+
+  monitorhostcommandenc="`echo $monitorhostcommand | sed 's/\\//\\\\\\//g'`"
+  webalizercommandenc="`echo $webalizercommand | sed 's/\\//\\\\\\//g'`"
+
+  monitorhostmatch='^\([^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*\)[ \t][ \t]*'$prefixenc'\/bin\/globulectl[ \t][ \t]*monitorhost\(.*\)$'
+  webalizermatch='^\([^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*[ \t][ \t]*[^ \t][^ \t]*\)[ \t][ \t]*'$prefixenc'\/bin\/globulectl[ \t][ \t]*webalizer[ \t]*$'
+  markermatch='^\(#.*[Ee]ntries.*'$prefixenc'.*\)'
+
+  monitorhostinterval="`sed < crontab.bak -e \"s/$monitorhostmatch/\1/p\" -e d`"
+  webalizerinterval="`sed < crontab.bak -e \"s/$webalizermatch/\1/p\" -e d`"
+  markerpresent="`sed < crontab.bak -e \"s/$markermatch/\1/p\" -e d`"
+
+  if [ -n "$monitorhostinterval" ]; then
+    echo "interval for the monitorhost was: $monitorhostinterval"
+  fi
+  if [ -n "$webalizerinterval" ]; then
+    echo "interval for the webalizer   was: $webalizerinterval"
+  fi
+
+  if [ -n "$optlogserver" ]; then
+    echo > crontab.sed "s/$monitorhostmatch/\1 $monitorhostcommandenc $optlogserver/"
+  else
+    echo > crontab.sed "s/$monitorhostmatch/\1 $monitorhostcommandenc\2/"
+  fi
+  echo  >> crontab.sed "s/$webalizermatch/\1 $webalizercommandenc/"
+  echo  >> crontab.sed "/$markermatch/{"
+  if [ -n "$markerpresent" ]; then
+    if [ -z "$monitorhostinterval" ]; then
+      echo >> crontab.sed ";a $defaultmonitorhostinterval $monitorhostcommandenc $optlogserver"
+    fi
+    if [ -z "$webalizerinterval" ]; then
+      echo >> crontab.sed ";a $defaultwebalizerinterval $webalizercommandenc"
+    fi
+  fi
+  echo >> crontab.sed ";}"
+
+  sed < crontab.bak > crontab.tmp -f crontab.sed
+
+  if [ -z "$markerpresent" ]; then
+    echo >> crontab.tmp ""
+    echo >> crontab.tmp "# Entries specific for Globule in $prefix"
+    if [ -z "$monitorhostinterval" ]; then
+      echo >> crontab.tmp "$defaultmonitorhostinterval $monitorhostcommand $optlogserver"
+    fi
+    if [ -z "$webalizerinterval" ]; then
+      echo >> crontab.tmp "$defaultwebalizerinterval $webalizercommand"
+    fi
+  fi
+
+  crontab crontab.tmp
+
+  rm -f crontab.tmp crontab.sed
+  exit 0
+
+  ;;
+
+installconf)
+
+  eval "sed < $source > $target $substargs"
+  exit $?
+
+  ;;
+
+webalizer)
+
+  # to resolve libraries for webalizer
+  export LD_LIBRARY_PATH="$prefix/lib:$LD_LIBRARY_PATH"
+  case $# in
+  0)
+    cd $prefix
+    d=`cat etc/webalizer.conf \
+       | sed -e 's/^[ \t]*OutputDir[ \t][ \t]*\(.*\)$/\1/p' -e d`
+    if [ \! -d "$d" ]; then
+      mkdirhier "$d"
+    fi
+
+    ( for d in `find htdocs -type d -name .htglobule` ; do
+        if [ -f "$d/report.log" ]; then
+          p=`dirname "$d" | sed -e 's/^htdocs\/*/\//'`
+          ./bin/globuleutil -fcombined -p"$p" "$d/report.log"
+        fi
+      done ) \
+    | ./bin/webalizer -
+    exit $?
+    ;;
+  1|2|3)
+    d=`cd "$1" ; pwd`
+    cd $prefix
+    if [ ! -d "$d/.htglobule" ]; then
+      echo "$0: directory $d does not exist"
+      exit 1
+    fi
+    if [ ! -d "$d/.htglobule/report" ]; then
+      mkdir "$d/.htglobule/report"
+    fi
+    args=""
+    if [ "$d/.htglobule/webalizer.conf" ]; then
+      args="$args -c \"$d/.htglobule/webalizer.conf\""
+    fi
+    if [ $# -gt 1 ]; then
+      args="$args -n \"$2\""
+    fi
+    if [ $# -eq 3 ]; then p="$3" ; else p="/" ; fi
+    args="$args -o \"$d/.htglobule/report\" -"
+    ./bin/globuleutil -w 7200 -fcombined -p"$p" "$d/.htglobule/report.log" \
+    | eval "./bin/webalizer $args"
+    exit $?
+    u=`ls -ld "$d/.htglobule" | awk '{print $3}'`
+    g=`ls -ld "$d/.htglobule" | awk '{print $4}'`
+    chown 2>/dev/null -R $u "$d/.htglobule/report"
+    chgrp 2>/dev/null -R $g "$d/.htglobule/report"
+    ;;
+  *)
+    echo "$0: wrong number of command line arguments"
+    exit 1
+    ;;
+  esac
+  exit 0
+
+  ;;
+
+check)
+
+  cd $basedir
+
+  if [ -z "$optnoserial" -o -z "$optnorestart" ]; then
+    url=`sed < $conf -e 's/^[ \t]*[gG][lL][oO][bB][uU][lL][eE][aA][dD][mM][iI][nN][uU][rR][lL][ \t]*\([^ \t]*\).*$/\1/p' -e 's/^[ \t]*[gG][lL][oO][bB][uU][lL][eE][aA][dD][mM][iI][nN][uU][rR][lL][ \t]*\"\([^\"]*\)\".*$/\1/p' -e d | head -1 | tr -d '\n'`
+    gbsserial_srv="`wget -O - -q $url/gbs`"
+    gbsserial_cfg="`sed < $conf -e 's/^.*[Gg][Ll][Oo][Bb][Uu][Ll][Ee][Bb][Rr][Oo][Kk][Ee][Rr][Cc][Oo][Nn][Ff][Ii][Gg][Uu][Rr][Aa][Tt][Ii][Oo][Nn][Ss][Ee][Rr][Ii][Aa][Ll][ \t]*\"\([^\"]*\)\".*$/\1/p' -e 's/^.*[Gg][Ll][Oo][Bb][Uu][Ll][Ee][Bb][Rr][Oo][Kk][Ee][Rr][Cc][Oo][Nn][Ff][Ii][Gg][Uu][Rr][Aa][Tt][Ii][Oo][Nn][Ss][Ee][Rr][Ii][Aa][Ll][ \t]*\([^ \t]*\).*$/\1/p' -e d | head -1 | tr -d '\n'`"
+    if [ -z "$optnoserial" ]; then
+      url="`sed < $conf -e 's/^.*GlobuleAutoFetch[ \t][ \t]*\(.*\)$/\1/p' -e d | tail -1 | tr -d '\n'`"
+      gbsserial_gbs="`wget -O - -q "$url" | sed -e 's/^.*[Gg]lobule[Bb]roker[Cc]onfiguration[Ss]erial[ \t]*\"\([^\"]*\)\".*$/\1/p' -e 's/^.*[Gg][Ll][Oo][Bb][Uu][Ll][Ee][Bb][Rr][Oo][Kk][Ee][Rr][Cc][Oo][Nn][Ff][Ii][Gg][Uu][Rr][Aa][Tt][Ii][Oo][Nn][Ss][Ee][Rr][Ii][Aa][Ll][ \t]*\([^ \t]*\).*$/\1/p' -e d | head -1 | tr -d '\n'`"
+    fi
+    if [ -n "$optverbose" ]; then
+      echo "gbsserial srv $gbsserial_srv"
+      echo "gbsserial cfg $gbsserial_cfg"
+      if [ -z "$optnoserial" ]; then
+        echo "gbsserial gbs $gbsserial_gbs"
+      fi
+    fi
+    if [ -z "$optnoserial" -a "$gbsserial_gbs" != "$gbsserial_cfg" ] ; then
+      if [ -n "$optverbose" ]; then
+        echo "need to re-fetch configuration from $url"
+      fi
+      if [ -f $conf.orig ] ; then
+        diff -c $conf.orig $conf > $conf.patch
+        rm -f $conf.orig
+        cp $conf $conf.`date '+%Y%m%d%H%M%S'`
+      fi
+      wget -q -O $conf "$url"
+      cp $conf $conf.orig
+      if [ -x ./etc/patch.pl ] ; then
+        ./etc/patch.pl < $conf.orig > $conf
+      else if [ -f $conf.patch ]; then
+        patch -f -N -F 1000 -V simple -z .orig < $conf.patch $conf
+      fi ; fi
+      gbsserial_cfg="$gbsserial_srv"
+    fi
+  fi
+  for d in `sed < $conf -e 's/^[^#][Dd][Oo][Cc][Uu][Mm][Ee][Nn][Tt][Rr][Oo][Oo][Tt] \"\([^\"]*\)\".*$/\1/p' -e 's/^[^#][Dd]ocumentRoot \([^ \t]*\).*$/\1/p' -e 's/^.*GlobuleCreateDir[ \t][ \t]*\(.*\)$/\1/p' -e d` ; do
+    if [ \! -d "$d" ]; then
+      if [ -n "$optverbose" ]; then
+        echo "create directory hierarchy for $d"
+      fi
+      mkdirhier "$d"
+    fi
+  done
+  if [ -z "$optnorestart" -a "$gbsserial_srv" != "$gbsserial_cfg" ] ; then
+    if [ -n "$optverbose" ]; then
+      echo "need to restart"
+    fi
+    ./bin/apachectl stop
+    sleep 5
+    ./bin/apachectl start ;# ./bin/apachectl startssl
+  else
+    if [ -n "$optverbose" ]; then
+      echo "check ok"
+    fi
+  fi
+  exit 0
+
+  ;;
+
+esac
+
+cd $basedir
+
+case "$cmd" in
+restart|configtest|graceful)
+  ./bin/apachectl $cmd
+  exit $?
+  ;;
+esac
+
+if [ "$cmd" != "start" -a -n "$cmd" ]; then
+  ./bin/apachectl stop
+  if [ -x ./bin/mysqld_safe ]; then
+    ./bin/mysqladmin -u master shutdown
+  fi
+fi
+
+if [ "$cmd" = "recycle" ]; then
+  sleep 5
+  if [ "`perl -e 'print $>;'`" = 0 ]; then
+    pids=`sed  -e 's/^[ \t]*[uU][sS][eE][rR][ \t][ \t]*\([^ \t]*\).*$/\1/p' -e d < $conf`
+    if [ -z "$pids" -o "$pids" = "root" ]; then
+      pids=`ps -f -u root         | grep /home/berry/globule/apache/bin/httpd | grep -v grep | awk '{print$2;}'`
+    else
+      pids=`ps -f -u "$pids,root" | grep /home/berry/globule/apache/bin/httpd | grep -v grep | awk '{print$2;}'`
+    fi
+  else
+    pids=`ps -f -u                | grep /home/berry/globule/apache/bin/httpd | grep -v grep | awk '{print$2;}'`
+  fi
+  if [ -n "$pids" ] ; then
+    kill -TERM $pids
+    sleep 5
+    kill -KILL $pids
+  fi
+  sleep 5
+  find . -path '*/.htglobule/*' -name state -exec rm \{\} \;
+  ipcrm `ipcs -s | awk '(int($2)>0){print"-s",$2}'`
+else
+  # give Apache and MySQL some time to quit
+  sleep 7
+fi
+
+if [ "$cmd" != "stop" ]; then
+  if [ -x ./bin/mysqld_safe ]; then
+    if [ "`perl -e 'print $>;'`" = 0 ]; then
+      ./bin/mysqld_safe --defaults-file=$basedir/etc/my.conf --skip-networking --user=root 2>/dev/null >/dev/null &
+    else
+      ./bin/mysqld_safe --defaults-file=$basedir/etc/my.conf --skip-networking             2>/dev/null >/dev/null &
+    fi
+  fi
+  ./bin/apachectl start ;# ./bin/apachectl startssl
+  if ./bin/apachectl configtest 2>&1 | grep "Cannot load .*php.* into server.*: cannot restore segment prot after reloc: Permission denied" > /dev/null; then
+    echo ""
+    echo "$0: failing to start Apache with PHP, probably because of restrictiveness"
+    echo "of SELinux.  You probably need to issue the command:"
+    echo "  chcon `pwd`/modules/libphp5.so -t shlib_t"
+    echo "as superuser to give PHP additional permissions."
+  fi
+fi
+
+exit 0

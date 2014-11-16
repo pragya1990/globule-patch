@@ -1,0 +1,14 @@
+# Test: master exports all
+<Location />  
+  Export ON
+	ExportTo http://localhost:8057/3rdparty/poolname password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+# Patch to prevent premature testing: with the master exporting / there are
+# no non-Globulized docs. This makes /index.html one.
+<Files index.html>
+  Export OFF
+</Files>
+

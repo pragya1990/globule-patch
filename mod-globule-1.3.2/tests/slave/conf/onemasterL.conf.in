@@ -1,0 +1,4 @@
+# Test: Is a superfluously escaped character the import path handled correctly?
+<Location /3rdparty/po%6Flname/>  
+	Import REPLICA http://localhost:8056/export password1
+</Location>

@@ -1,0 +1,770 @@
+\documentclass[10pt,twoside]{article}
+
+\usepackage{a4}
+\usepackage[obeyspaces]{url}
+\usepackage{graphicx}
+\usepackage{hevea}
+\usepackage{fancyvrb}
+
+\def\section{\@startsection{section}{1}
+{\z@}{-2.5ex plus -0.5ex minus -0.1ex}{0.5ex plus 0.1ex}{\large\bf}}
+\def\subsection{\@startsection{subsection}{2}
+{\z@}{-2.25ex plus -0.3ex minus -0.2ex}{0.05ex plus 0.05ex}{\normalsize\bf}}
+\def\subsubsection{\@startsection{subsubsection}{3}
+{\z@}{-2.25ex plus -0.3ex minus -0.2ex}{0.05ex plus 0.05ex}{\normalsize\sc}}
+\def\paragraph{\@startsection{paragraph}{4}
+{\z@}{2ex plus 0.5ex minus 0.1ex}{-0.7em}{\normalsize\it}}
+
+\def\@listi{\topsep 0.4ex \parsep 0pt \itemsep \parsep}
+\topsep 0.4ex \partopsep 0pt \itemsep 0pt \parsep 0pt
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+ \topsep 0pt \parsep 0pt \itemsep \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+ \parsep \z@ \topsep 0pt \partopsep 0pt \itemsep \topsep}
+
+\setcounter{tocdepth}{3}
+%\setcounter{cuttingdepth}{3}
+\ifhevea
+\newcommand{\l}{l}
+\newcommand{\vfill}{}
+\tocnumber
+\htmlprefix{Globule User Manual: }
+\newenvironment{p}{}{\par}
+\clubpenalty=10000
+\widowpenalty=10000
+\fi
+
+\title{Globule Packaging Guide}
+\date{Version 1.3.0
+  \ifhevea \begin{rawhtml}</H3> 
+<H3 ALIGN=center>\end{rawhtml} \else \\ \fi
+  \ahrefurl{http://www.globule.org/}}
+\author{\ahref{\url{http://www.halderen.net/}}{Berry~van~Halderen}}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\cleardoublepage
+
+\parindent 0pt
+\parskip 1em
+
+\section{Introduction}
+
+Packaging involves preparing the Globule software ready for release.  This
+guide should describe all steps in the final approach for a release of
+Globule, where to retrieve the installation from, how to build the packages,
+etcetera.
+
+This guide is based on Globule version 1.3.0.  It need not be necessarily
+out-of-date for coming releases.  The Globule Broker System (GBS) is not part
+of the Globule distribution, but is maintained seperately.
+
+\begin{quote}\scriptsize
+For reference purposes: \\
+The Globule Broker System (GBS) is located in CVS repository available through
+\newline
+\verb!:ext:flits.cs.vu.nl:/net/globe/CVSRepos2! under the module name
+\texttt{globeworld}.  It has a similar, albeit simpler
+description in the file \texttt{README.dist} in the main
+directory of the CVS module.  GBS and Globule releases are unrelated at this
+time.
+\end{quote}
+
+The packaging guide should first the studied fully, before making a
+distribution, as some consequences of steps are later explained.  The guide
+should however be a cronilogical step-by-step walkthrough that can be followed
+to make a distribution.  In fact, all steps are mostly required unless you
+know what you are doing, as some steps in building one type of package are
+sometimes needed in building another.
+
+\subsection{Updating this document}
+
+To keep this document up to date regulary review the procedure.  If additions
+or changes need to be made, \emph{also update the version number} in this
+document to reflect that this guide has been updated to the associated version
+number in Globule.
+
+When making important changes which will not work on previous releases of
+Globule, make a historic note in the appendix.  This should only be done when
+a procedure conflicts with earlier distribution, not with additions.
+
+\section{Repository and packages}
+
+The Globule source code is kept in a CVS repository available at CVSROOT
+\verb!:ext:flits.cs.vu.nl:/net/globe/CVSRepos2! with module name
+\texttt{globule}.
+
+\section{System setup}
+
+The procedure for building the distribution packages assumes a number of paths
+where to build the packages.  These packages are not necessarily fixed, but
+some scripts (e.g. \verb!mkinstaller.sh!) should be modified if different
+paths are to be used.  All packages are assumed to be build on the same
+machine, but VMware is used to build a number of the packages in the specific
+Linux distributions.  Images for the virtual machines to be used with VMware
+are to be supplied (see appendix~\ref{sec:vmware}).
+
+The following computer setup is assumed:
+\begin{enumerate}
+\item Some linux box (used: Slackware-10.1).
+
+\item RPMs tree in \verb!/usr/src/rpm!.  This is however \verb!/usr/src/redhat!
+under the % mighty irritating
+RedHat distributions.
+
+Replace \verb!/usr/src/rpm! by
+\verb!/usr/src/redhat! and edit the files \verb!GNUmakefile!,
+\verb!publish.sh! and verb!tools/mkinstaller.sh! to reflect changes if you
+need to.
+
+\item The final distribution is produced in /home/ftp/pub/globule.
+
+It is usefull if this tree is also the source for the installer.sh script
+auto/ directory for updates.
+
+\item The path to apache is assumed to be \verb!../globule! when inside the Globule source directory. This used in the \texttt{GNUmakefile}.
+
+\item The host \verb!flits.cs.vu.nl! is assumed to run a ntp daemon.
+
+\end{enumerate}
+
+Try to use the GNUmakefile in the distribution.  This makefile, which works as
+a front of the real makefile when using GNU make, adds a number of tasks
+especially usefull for the maintainer of Globule:
+
+\begin{itemize}
+\item it makes sure the autoconf, automake, etcetera are run properly and
+produced files are up to date;
+\item it calls configure when needed.  The options to configure and the path
+to apache are however hardcoded and may need changing.
+\item it provides checks to make sure the version number of Globule is the
+same in a number of files.
+\item the make target \texttt{cleanest} should remove
+all additional files which should never go into the CVS repository.
+\item it will run make more silently for the maintainer only, so that the
+standard makefile to end-users is normally verbose.
+\end{itemize}
+
+\section{Sanity check of prepared distribution}
+
+Before actually making the distribution you should take the time to do
+a sanity check of the files to be distributed.
+
+\subsection{Version check}
+
+\begin{itemize}
+\item Check that the version in the file \texttt{VERSION} is
+right.
+
+\item To check that other files which contain the version number of Globule
+are also up-to-date, run using the GNUmakefile:
+\begin{verbatim}
+  make versioncheck
+\end{verbatim}
+This should produce no errors, if not, check the related files all use
+the same version for Globule.
+
+\item Check that the version number in the documentation is up-to-date
+
+\textbf{missing explanation}
+
+\item Check the distribution release files \texttt{ChangeLog} and \texttt{NEWS}.
+
+\textbf{missing explanation}
+
+\item Run a clean compilation using the command sequence:
+\begin{verbatim}
+  make clean clean cleanest
+  make all
+\end{verbatim}
+This should still compile cleanly (procedure assumes using GNUmakefile).
+
+\item Test using the test suite
+\begin{verbatim}
+  cd testsuite ; ./runtests.sh ; cd ..
+\end{verbatim}
+Test backuptest.pl isn't working properly, ignore it.
+Test uritest.pl is suppost to fail.  Test redirectortest.pl reports as
+failed, but inspection of the *.out file should make it clear that only
+unexpected re-re-redirects are being made.
+
+\item Clean up previous steps using
+\begin{verbatim}
+  make clean cleanest
+\end{verbatim}
+Then check that all files are up-to-date against the CVS repository.
+Make sure all sources are checked in.
+
+\end{itemize}
+
+\section{Creating the packages}
+
+This assumes you have \emph{really} done the steps in the sanity section.  If
+not, the distribution packages may include wrong files and/or outdated.  The
+following procedure namely assumes a clean tree which is totally equal to the
+CVS repository.
+
+\begin{itemize}
+
+\item Tag the CVS repository with a tag naming the distribution version using
+\begin{verbatim}
+cvs tag \textit{tagname}
+\end{verbatim}
+
+\item Administrate the tag in
+\verb!nfs://flits.cs.vu.nl/net/globe/CVSRepos2.Tags.globule!.  Also look at
+this files for possible naming conventions.
+
+\end{itemize}
+
+\subsection{Main distribution file}
+
+\begin{itemize}
+
+\item Now produce the dist file
+\begin{verbatim}
+  make configure
+  rm mod-globule-*.tar.gz
+  make dist
+\end{verbatim}
+Not removing any dist file with the same version will silently refuse to
+reproduce the dist file.
+
+\item Make sure the SPEC files are up-to-date.
+
+\textbf{Explaination missing, and possibly better move to another section}
+
+\item Upgrading apache/httpd and others external packages
+
+\textbf{Explaination missing, and possibly better move to another section}
+
+\item Copy the \verb!mod-globule-*.tar.gz! to \verb!/usr/src/rpm!
+(required location for \textbf{missing}).
+
+\end{itemize}
+
+\subsection{Building the Windows Release}
+
+\subsubsection{Prerequisites}
+
+\begin{itemize}
+\item[-] This build description assumes Microsoft Visual C++ version 7.1.3088,
+of course, MicroSoft has a nasty habit of changing their interface constantly,
+so start exhaustively searching your menu's to change the parameters.
+\item[-] Nullsoft installer builder.
+\item[-] Utility programs \verb!patch! and \verb!awk!.
+\item[-] Files \verb!msvcp71.dll!, \verb!msvcr71.dll!, \verb!msvcp71d.dll!,
+and\verb!msvcr71d.dll!.
+\end{itemize}
+
+\subsubsection{Preparation}
+
+\begin{enumerate}
+\item Create directories \verb!C:\ApacheInstallFiles! and
+\verb!C:\ApacheInstallFiles\PreInstalled!.
+
+\item Extract source code for Globule in \verb!C:\globule!
+I.e. do a cvs checkout of the globule module while in \verb!C:\!
+
+\item Download Apache source \verb!httpd-2.0.55-win32-x86-src.zip!.
+
+\item Download Apache binary installer
+  \verb!apache_2.0.55-win32-x86-no_ssl.msi!.
+
+\end{enumerate}
+
+\subsubsection{Apache build}
+
+\begin{enumerate}
+\item Unpack \verb!httpd-2.0.55-win32-x86-src.zip! in \verb!C:\! creating
+  \verb!C:\httpd-2.0.55! (keep zip file for now).
+
+\item Open a shell and execute:
+\begin{verbatim}
+C:
+CD \httpd-2.0.55
+patch -p0 < C:\globule\apache\udp-requests-httpd-2.0.50.patch
+\end{verbatim}
+all hunks should succeed.
+
+\item\label{step:buildwin} Put all the files from
+  \verb!C:\globule\apache\GlobuleMonitor! into
+  \verb!C:\httpd-2.0.55\support\win32!
+
+  \textbf{Should be patched rather than overwritten.} \\
+  \textbf{The user how always gets a patched ApacheMonitor}
+
+\item Open Apache.dsw, convert dsp files to new Microsoft Visual Studio
+  environment (answer ``Yes to all'').  Note that if you had already
+  build Apache before and want to rebuild, do not open the Apache.dsw, but
+  the Apache.vcproj file and naturally the next step can be skipped.
+\item Unfortunately httpd-2.0.55 has been improperly released (that is: with
+  SSL turned on), therefor you need to disable SSL using:
+  
+  \begin{itemize}
+  \item select Apache project in Solution Explorer
+  \item \texttt{Build} $\rightarrow$ \texttt{Configuration Manager};
+    change \texttt{Active Solution Configuration} to ``Release''.
+  \item do not let projects \texttt{abs}, \texttt{mod\_ssl}, and
+    \texttt{mod\_deflate} be build (i.e. check them off).
+  \end{itemize}
+\item In \texttt{Solution Explorer} right click \texttt{ApacheMonitor} choose
+  \texttt{Add} $\rightarrow$ \texttt{Add Existing Item};
+  select \verb!GlobuleMonitor.c! and (using control key) also
+  \verb!GlobuleMonitor.h! and select \texttt{Open} to add them.
+
+\item In \texttt{Solution Explorer} right click \texttt{ApacheMonitor} select
+  \texttt{Properties}.  Make sure the \texttt{Configuration} is the active
+  configuration(Release).  Change the following:
+  \begin{itemize}
+  \item In \texttt{Configuration properties} $\rightarrow$ \texttt{Linker}
+    $\rightarrow$ \texttt{General};  Add to \texttt{Additional Library
+    Directories}
+\begin{verbatim}
+\verb!C:\httpd-2.0.55\srclib\apr\Release;C:\httpd-2.0.55\srclib\apr-iconv\Release;C:\httpd-2.0.55\srclib\apr-util\Release!
+\end{verbatim}
+  \item In \texttt{Configuration properties} $\rightarrow$ \texttt{Linker}
+    $\rightarrow$ \texttt{Input};  Add to \texttt{Additional Dependencies} the
+    following libraries:
+\begin{verbatim}
+comctl32.lib libapr.lib libapriconv.lib libaprutil.lib Ws2_32.lib
+\end{verbatim}
+  \item In \texttt{Configuration Properties} $\rightarrow$ \texttt{C/C++}
+    $\rightarrow$ \texttt{General};  Add to \texttt{Additional Include
+    Directories} the path:
+\begin{verbatim}
+C:\httpd-2.0.55\srclib\apr\include;C:\httpd-2.0.55\srclib\apr-util\include
+\end{verbatim}
+  \end{itemize}
+
+\item Select the top-level project "Apache2" and build solution, Apache will
+  be build to destination \verb!C:\Apache2!.
+\item\label{step:endbuildwin} Remove all files named \verb!*.pdb! from the
+  directories \verb!\C:\Apache2\bin!, \verb!C:\Apache2\bin\iconv!,
+  \verb!C:\Apache2\lib!, and \verb!C:\Apache2\modules!
+\item Rename \verb!C:\Apache2! to \verb!C:\ApacheInstallFiles\PatchedApache!.
+\item Remove \verb!C:\httpd-2.0.55!.
+\item Unpack \verb!httpd-2.0.55-win32-x86-src.zip! to \verb!C:\httpd-2.0.55!
+  (zip may be discarded now if you really want to).
+\item Repeat steps \ref{step:buildwin} thru \ref{step:endbuildwin}.
+
+\end{enumerate}
+
+\subsubsection{Globule build}
+
+\begin{enumerate}
+\item Open \verb!C:\globule\globule.sln! in Visual Studio.
+
+\item \texttt{Build} $\rightarrow$ \texttt{Configuration Manager}
+  $\rightarrow$ select ``Release'' build.
+  Untag \texttt{mod\_psodium} and \texttt{auditor} if selected.
+\item \texttt{Build} $\rightarrow$ \texttt{Build Solution}
+
+\item \texttt{Build} $\rightarrow$ \texttt{Configuration Manager}
+  $\rightarrow$ select ``Release DNS redirection'' build.
+  Untag \texttt{mod\_psodium} and \texttt{auditor} if selected.
+\item \texttt{Build} $\rightarrow$ \texttt{Rebuild Solution}
+
+\item Copy \verb!C:\globule\mod_globule\Release\DNS\mod_globule.so! to
+      \verb!C:\ApacheInstallFiles\PatchedApache\modules!.
+\item Copy \verb!C:\globule\mod_globule\Release\mod_globule.so! to
+      \verb!C:\ApacheInstallFiles\PreInstalled!.
+
+\end{enumerate}
+
+\subsubsection{Packaging}
+
+\begin{enumerate}
+
+\item Place \verb!apache_2.0.55-win32-x86-no_ssl.msi! place in
+  \verb!C:\globule\winstall!.
+\item Place files \verb!msvcp71.dll!, \verb!msvcr71.dll!, \verb!msvcp71d.dll!,
+  and \verb!msvcr71d.dll! in \verb!C:\globule\winstall!.
+\item Copy directory \verb!C:\globule\sample\globuleadm! to
+      \verb!C:\globule\winstall!.  However do not copy the CVS subdirectory,
+      there are also subdirectories which can contain CVS directories to be
+      removed.
+\item Copy directory \verb!C:\globule\sample\html! to
+      \verb!C:\globule\winstall! and rename it to \verb!htdocs!.  However do
+      not copy the CVS subdirectories, also not from any of the subdirectories.
+\item Copy \verb\!C:\globule\sample\javascript-example.html! to
+      \verb!C:\globule\winstall\htdocs\javascript-example.html!.
+\item Copy and rename directory \verb!C:\globule\sample\errordocument! to
+      \verb!C:\globule\winstall\error!.  Do not copy the CVS directory
+      contained within it.
+\item Copy both \verb!Globule.css! and \verb!globule.png! from
+      \verb!C:\globule\winstall\globuleadm! to
+      \verb!C:\globule\winstall\htdocs! and also both to
+      \verb!C:\globule\winstall\htdocs\globule!.
+\item Make sure the \verb!httpd-globule.conf! in the \verb!C:\globule\winstall!
+      directory still reflects the converted \verb!globule\sample\httpd.conf!
+      file.  Copy \verb!httpd-globule.conf! to \verb!httpd.conf!.
+\item Copy \verb!ApacheMonitor.exe! from
+      \verb!C:\ApacheInstallFiles\PatchedApache\bin! to
+      \verb!C:\globule\winstall!
+
+  \textbf{Problem that the ApacheMonitor already went into the regular
+    package.}
+
+\item Edit \verb!C:\globule\winstall\globule.nsh!
+  \begin{itemize}
+  \item check or modify the version number of supported Apache's
+    \texttt{AP\_VER\_\textit{\{}MAJOR\textit{,}MINOR\textit{,}REVISION\_MIN\textit{,}REVISION\_MAX\textit{\}}}
+  \item Check or modify the Apache window installer file version number
+    at \texttt{AP\_INSTALL\_FILE}
+    (currently \verb!apache\_2.0.55-win32-x85-no\_ssl.msi!).
+  \item Check whether the utils defined at ``Globule main site'' are still
+    valid.
+
+  \end{itemize}
+
+\item Right click \verb!C:\globule\winstall\globule.nsi! and select
+  \texttt{Compile NSIS Script}.
+
+\end{enumerate}
+
+Target is left in \verb!C:\globule\winstall! as \texttt{Globule-1.3.1.exe}.
+
+\textbf{Some files (a.o. \texttt{*.pdb}) should have been removed before
+  packaging.}
+
+\subsubsection{Notes on changing paths from above defaults}
+
+There are a lot of hardcoded paths, some of them are:
+\begin{itemize}
+\item[-] class view $\rightarrow$ right mouse $\rightarrow$ mod\_globule $\rightarrow$ properties $\rightarrow$ all configurations
+\item[-] set path in \verb!compat\win32\httpd.h! for real \verb!httpd.h!
+\item set additional library directories
+\end{itemize}
+
+\subsubsection{Just running Globule}
+
+\begin{itemize}
+\item Copy \texttt{mod\_globule\\\textit{release-type}\\mod\_globule.so} to
+modules directory of Apache, where the release-type is one of \texttt{Debug}, \texttt{Release}, \texttt{Debug\\DNS} or \texttt{Release\\DNS}
+\end{itemize}
+
+\subsection{Building the source based installer script}
+
+\begin{itemize}
+\item copy \verb!mod-globule-*.tar.gz! to
+\verb!/home/ftp/pub/globule/auto/src/!
+
+\item run \verb!./tools/mkinstaller.sh!
+
+\end{itemize}
+
+\subsection{Building the debian package}
+
+\textbf{Missing.}
+
+\subsection{Building the RPMs}
+
+Start VMWare and perform the following actions in VMware:
+
+\begin{enumerate}
+\item start the shrike-src virtual machine
+\item{\label{step:revertshrike} it should have been previously checkpointed to
+   a running state so: revert to checkpoint}
+\item a command should be up so resynchronize the time:
+   !verb!ntpdate top.cs.vu.nl!,  execute this command.
+\item reboot virtual machine cleanly (ie. give reboot command).
+\item when it has been started, login as root with password ``geheim''.
+\item The \verb!/usr/src/redhat! directory should have been mounted from the
+   \verb!/usr/src/rpm! of the host-machine.  If not use measures to copy files
+   back-and-forth and in steps running !verb!sync!.
+\item \label{step:endrevertshrike} \verb!cd /usr/src/redhat/SPECS!.
+\item \verb!rpm -i ../RPMS/i386/httpd-2.0.55.*!
+\item \verb!rpmbuild -ba mod-globule-1.3.0.spec!
+\item \verb!sync ; sleep 5!
+\item repeat steps \ref{step:revertshrike} thru \ref{step:endrevertshrike}.
+\item \verb!rpm -i ../RPMS/i386/httpd-local-2.0.55.*!
+\item \verb!rpmbuild -ba mod-globule-local-1.3.0.spec!
+\item \verb!sync ; sleep 5!
+\item repeat steps \ref{step:revertshrike} thru \ref{step:endrevertshrike}.
+\item \verb!rpm -i ../RPMS/i386/globule-1.3.0.spec!
+\item \verb!sync ; sleep 5!
+\item \verb!revert to snapshot and suspend virtual machine.!
+\end{enumerate}
+
+\subsection{Publication}
+
+The source based installer script is immediately released, so the previous
+section could best be done for the final release, not release candidates.
+
+Copy the produced \verb!Globule-1.3.0.exe! file from the windows platform to
+\verb!/home/ftp/pub/globule!.
+
+Execute the \texttt{publish.sh} file to transport the produced
+distribution files from the \verb!/usr/src/rpm! tree to
+\verb!/home/ftp/pub/globule!.
+
+\section{Release roll-out}
+
+\textbf{Missing}
+
+\subsection{Members.globule.org}
+
+Adding members:
+\begin{verbatim}
+  ssh globe@mirror.cs.vu.nl
+  su - groot
+  vi /globule/members.globule.org/conf/httpd.conf
+\end{verbatim}
+Add the user to the \verb!UserDir enabled!\ldots line.
+\begin{verbatim}
+  vi /globule/htdocs/members/htdocs/index.html
+\end{verbatim}
+Add the user to the list of people using the Globule-replicated Home Pages.
+\begin{verbatim}
+  /globule/bin/globulectl restart
+\end{verbatim}
+
+\clearpage
+\appendix
+\section{\label{sec:servers}Servers in use}
+
+\subsection{Per-machine listing}
+
+Codes used:
+\begin{description}
+\item[Slackware] Host running Slackware, stand-alone.
+\item[FC3] Host running RedHat Fedore Core 3
+\item[RH/das] Host running RedHat, part of the das cluster, in machine room.
+\item[\textit{xxx}/desktop] \ldots\/on someone's desk, being maintained by owner.
+\item[\textit{xxx}/server] \ldots\/in the server room, maintained by Berry.
+\end{description}
+
+\begin{description}
+\item[\bf\tt zappa.cs.vu.nl]
+  \textit{\scriptsize RH/das, P3 700MHz 256MB 20GB}
+
+  \begin{itemize}
+  \item[-] demo.globule.org
+  \item[-] redirector for members a.k.a. globule.cs.vu.nl.
+  \end{itemize}
+
+\item[\bf\tt baby.cs.vu.nl]
+  \textit{\scriptsize RH/das, P3 700MHz 512MB 20GB}
+
+  \begin{itemize}
+  \item[-] main GBS/www.globeworld.net server.
+  \end{itemize}
+
+\item[\bf\tt posh.cs.vu.nl]
+  \textit{\scriptsize RH/das, P3 550MHz 256MB 20GB}
+
+  Currently out of the running --- stability issues.
+
+\item[\bf\tt scary.cs.vu.nl]
+  \textit{\scriptsize RH/das, P3 550MHz 256MB 9GB}
+
+  \begin{itemize}
+  \item[-] replica for www.globule.org.
+  \end{itemize}
+
+\item[\bf\tt wereld.cs.vu.nl]
+  \textit{\scriptsize Slackware/server, Athlon 1.2GHz 512MB 40GB}
+
+  \begin{itemize}
+  \item[-] bugzilla
+  \item[-] origin for www.globule.org.
+  \end{itemize}
+
+\item[\bf\tt goupil.cs.vu.nl]
+  \textit{\scriptsize FC3/desktop, Athlon64 3000+ 2.0GHz 1024MB N/A}
+
+  owner: Guillaume
+
+\item[\bf\tt world.cs.vu.nl]
+  \textit{\scriptsize Slackware/desktop, AthlonXP 2800+ 2.0GHz 1024MB 40+80GB}
+
+  owner: Berry
+
+\item[\bf\tt reich.cs.vu.nl]
+  \textit{\scriptsize WindowsXPprof}
+
+  Replica server for GBS.
+
+\item[\bf\tt glass.cs.vu.nl]
+  \textit{\scriptsize WindowsXPhome}
+
+  Replica server for GBS.
+
+\end{description}
+
+
+Other machines (for reference purposes):
+\begin{description}
+\item[\bf\tt eendracht.cs.vu.nl] Linux router wide-area network emulator.
+\item[\bf\tt *.inria.fr] Unused due to software problems (could perhaps be used again).
+\item[\bf\tt globe.sdsc.edu] FreeBSD slave of globule.cs.vu.nl
+\item[\bf\tt gsd.ime.usp.br] Linux slave of globule.cs.vu.nl
+\item[\bf\tt firefly02.cs.cornell.edu] Linux slave of globule.cs.vu.nl
+\item[\bf\tt mirror.cs.vu.nl] Solaris master of globule.cs.vu.nl
+\item[\bf\tt sporty.cs.vu.nl] compute server.
+\item[\bf\tt ginger.cs.vu.nl] compute server.
+\end{description}
+
+\newpage
+
+\subsubsection{Updating SDSC (globe.sdsc.edu)}
+
+On the SDSC located machine, everything is being compiled, installed and
+running as user ``globe''.  The home directory \verb!! is the top-level
+directory where Globule related files reside.
+
+\begin{verbatim}
+ssh globe@globe.sdsc.edu
+cd build
+wget 'http://www.globule.org/download/\globuleversion/mod-globule-\globuleversion.tar.gz'
+tar xzf mod-globule-\globuleversion.tar.gz
+cd mod-globule-\globuleversion
+setenv CFLAGS -pthread
+setenv CXXFLAGS -pthread
+setenv CPPFLAGS -pthread
+setenv SHELL /usr/local/bin/bash
+./configure --with-apache=/home/globe/globule/members.globule.org/
+make
+make install
+cd ../../globule/members.globule.org
+vi conf/httpd.conf ;# optionally change settings
+cd bin
+./our-apachectl start
+\end{verbatim}
+
+\subsubsection{Updating Cornell}
+
+On the Cornell located machine, everything is being compiled, installed and
+running as user ``globe''.  The home directory \verb!/home/globe/globule!
+is the top-level directory where Globule related files reside.  The installer
+script is used to update Cornell.
+
+\begin{verbatim}
+ssh globe@firefly02.cs.cornell.edu
+/home/globe/globule/src/globule.sh
+\end{verbatim}
+
+The \verb!globule.sh! is a simple front end for the installer script with
+standard arguments.
+
+\subsubsection{Updating Brazil}
+
+On the site in Brazil, everything is being compiled, installed and running as user ``globe''.  The home directory \verb!/home/globe! is the top-level directory where Globule related files reside.  The directory \verb!build! is used to compile the sources, installation happens in \verb!!.
+ssh globe@
+
+\subsubsubsection*{Optionally upgrading Apache}
+
+\begin{verbatim}
+ssh globe@gsd.ime.usp.br
+cd build
+wget 'http://www.globule.org/download/apache-2.0.55/httpd-2.0.55.tar.gz'
+tar xzf httpd-2.0.55.tar.gz
+cd httpd-2.0.55
+./configure --enable-so --disable-cgi --disable-cgid --disable-proxy --prefix=/home/globe/globule/members.globule.org
+make
+make install
+cd ../../globule/members.globule.org/
+vi conf/httpd.conf ;# optionally change settings
+/usr/u/globe/globule/members.globule.org/bin/apachectl start
+\end{verbatim}
+
+\begin{verbatim}
+ssh globe@gsd.ime.usp.br
+cd build
+wget 'http://www.globule.org/download/1.3.0/mod-globule-1.3.0.tar.gz'
+tar xzf mod-globule-1.3.0.tar.gz
+cd mod-globule-1.3.0
+./configure --with-apache=/home/globe/globule/members.globule.org/
+make
+make install
+cd /home/globe/globule/members.globule.org
+vi conf/httpd.conf ;# Optionally update settings
+cd bin
+./our-apachectl start
+\end{verbatim}
+
+\subsection{Role based listing}
+
+\begin{description}
+\item[\bf\tt www.globule.org]
+
+\begin{tabular}
+\texttt{wereld.cs.vu.nl} & Origin & Slackware machine in serverroom \\
+\texttt{scary.cs.vu.nl}  & Slave  & \\
+\end{tabular}
+
+\item[\bf\tt globule.cs.vu.nl]
+
+Members the set of servers where the user private web pages of the
+\texttt{cs.vu.nl} can be replicated.  If users in the \texttt{.cs.vu.nl}
+domain put the following line
+{\scriptsize \begin{verbatim}
+<meta http-equiv="Refresh" content="0;url=http://members.globule.org:8041/~user/http-index.html"/>
+\end{verbatim}
+replacing \verb!user! with their username, in their
+\texttt{$HOME/www/index.html} then browsing users will be redirected
+to members.globule.org:8041 for which DNS redirection is used to forward the
+browser to one of the replica servers.
+The DNS redirector is a stand-alone redirector, while the origin is running on
+a Sun machine because it needs a secure NFS key to access the home directories
+of the users.  The redirector needs to be seperate in order to be accessible
+on port 53.  Because of the DNS redirection, and the replica servers cannot
+(all) access port 80 (the remote server Apaches are running as regular users)
+all systems need to run Apache on port 8041.
+
+\begin{tabular}
+\texttt{mirror.cs.vu.nl} & Origin     & Sun in machine room to access users home directory \\
+\texttt{zappa.cs.vu.nl}  & Redirector & Stand-alone redirector for members.globule.org \\
+\texttt{firefly02.cs.cornell.edu} & Replica & Slave replica server \\
+\texttt{globe.sdsc.edu}  & Replica    & Slave replica server --- out of commission \\
+\texttt{gsd.ime.usp.br}  & Replica    & Slave replica server --- out of commission \\
+\end{tabular}
+
+\section{\label{sec:vmware}VMware images}
+
+\textbf{VMware images should be available on a physical image}.
+
+On the Unix/Linux based distribution of the VMware images, solely the packages
+are build under the superuser credentials.  All images use password ``geheim''
+for the root account.
+
+\begin{description}
+\item{shrike-src}
+\item{debian-testing}
+\item{winxpdev}
+\end{description}
+
+\section{\label{sec:prerequisites}Misceleneous software}
+
+\begin{description}
+\item{patch for windows}
+\item{awk for windows}
+Available from \verb!http://cm.bell-labs.com/cm/cs/who/bwk/! as
+\verb!http://cm.bell-labs.com/cm/cs/who/bwk/awk95.exe! but rename to
+\verb!C:\windows\awk.exe!.
+
+\textbf{awk.exe and patch.exe should be included in the images cd.} \\
+\textbf{msvcp71.dll, msvcr71.dll, msvcp71d.dll, and msvcr71d.dll should
+also be included}
+
+\end{description}
+
+\section{\label{sec:history}Historic log of changes}
+
+For documentation purposes, important changes (not additions) in the packaging
+and distribution are described here.  This in order to keep track of changes
+make in the CVS repository and that the right procedure is kept for historic
+releases.
+
+\begin{itemize}
+\item Note 2005-07-29: The old server \verb!ensemble02.cs.cornell.edu! has been
+fased out.  The content of the home directory as it was on ensemble02 is
+stored in the subdirectory \verb!/home/globe/ensemble!.
+\end{itemize}
+
+\end{document}

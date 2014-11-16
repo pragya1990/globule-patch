@@ -1,0 +1,12 @@
+<!--#set var="TITLE" value="Bad Gateway!"
+--><!--#include virtual="top.shtml" -->
+
+    The proxy server received an invalid
+    response from an upstream server.
+
+  <!--#if expr="$REDIRECT_ERROR_NOTES" -->
+    </p><p>
+    <!--#echo encoding="none" var="REDIRECT_ERROR_NOTES" -->
+  <!--#endif -->
+    
+<!--#include virtual="bottom.shtml" -->

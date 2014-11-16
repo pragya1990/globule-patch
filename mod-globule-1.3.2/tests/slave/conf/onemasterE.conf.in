@@ -1,0 +1,11 @@
+# Test: master exports all, slave's import path is single path
+<Location /poolname>
+	Import REPLICA http://localhost:8056/ password1
+</Location>
+
+# Patch to prevent premature testing: with the slave importing / there are
+# no non-Globulized docs. This makes /index.html one.
+<Files index.html>
+  Export OFF
+</Files>
+

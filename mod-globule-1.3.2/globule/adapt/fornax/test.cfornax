@@ -1,0 +1,148 @@
+entity thirdparty {
+  int globalvalue;
+  signal void recursive(bool recurse) {
+    int localvalue;
+    localvalue = 0;
+    WAIT 5;
+    REPLY;
+    WAIT 50;
+    if(recurse)
+      RECV recursive;
+    ++localvalue;
+    ++globalvalue;
+    printf("Thirdparty values: %d %d\n",localvalue,globalvalue);
+  }
+  main() {
+    RECV recursive;
+    globalvalue = 0;
+  }
+};
+
+entity slave {
+  bool nextstage;
+  signal signal1(int arg) {
+    printf("Slave-mark1 %d: %ld\n", arg, TIME);
+    WAIT 1;
+    REPLY; // BUG: always reply, even on async event to avoid memory leakable
+  }
+  signal void signal2(int arg) {
+    printf("Slave-mark2 %d: %ld\n", arg, TIME);
+    WAIT 1;
+    REPLY;
+  }
+  signal int signal3(int value1, int value2) {
+    nextstage = true;
+    REPLY(value1+value2);
+  }
+  signal void signal4(int arg) {
+    REPLY;
+  }
+  signal int signal5(entity thirdparty peer, int arg) {
+    printf("Slave-mark3 %d: %ld\n", arg, TIME);
+    WAIT 8;
+    printf("Slave-mark3 %d: %ld\n", arg+1, TIME);
+    SEND peer -> recursive(true);
+    printf("Slave-mark3 %d: %ld\n", arg+2, TIME);
+    WAIT 9;
+    printf("Slave-mark3 %d: %ld\n", arg+3, TIME);
+    REPLY 3;
+  }
+  main() {
+    nextstage = false;
+    while(!nextstage) {
+      RECV signal1, signal2, signal3;
+    }
+    RECV signal4;
+    for(;;)
+      RECV signal4, signal5;
+    WAIT 20;
+  }
+};
+
+entity master {
+  int marker;
+  main(entity slave peer, entity thirdparty other, int niters) {
+    int i, iter;
+    int result;
+    marker = 0;
+    printf("Hello World!\n");
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    WAIT 3;
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    for(iter=0; iter<niters; iter++) {
+      for(i=0; i<5; i++) {
+	SEND peer -> signal1(marker++);
+	WAIT 2;
+      }
+      printf("Master-mark %d: %ld\n", marker++, TIME);
+      for(i=0; i<5; i++) {
+	SEND peer -> signal2(marker++);
+	WAIT 2;
+      }
+    }
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    result = SEND peer -> signal3((marker-1)/2,(marker-1-(marker-1)/2));
+    printf("Verify-mark %d.\n",result);
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    SEND peer -> signal4(2);
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    SEND peer -> signal4(2);
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    WAIT(72);
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    result = SEND peer -> signal5(other, marker);
+    marker += result;
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    SEND other -> recursive(false); // WAIT 5+50-9;
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    WAIT 32;
+    printf("Master-mark %d: %ld\n", marker++, TIME);
+    printf("Master program complete\n");
+  }
+};
+
+`
+    int
+    main(int argc, char *argv[])
+    {
+      int nsims=0, niters=0;
+      switch(argc) {
+      case 1:
+        break;
+      case 2:
+        niters = atoi(argv[1]);
+        break;
+      case 3:
+        nsims  = atoi(argv[1]);
+        niters = atoi(argv[2]);
+        break;
+      default:
+        std::cerr << "Wrong number of arguments." << std::endl << "Usage: "
+    	      << argv[0] << " [ [<number-of-simulation-runs>]"
+    	      << " [number of iterations]" << std::endl;
+        exit(1);
+      }
+      if(nsims <= 0)
+        nsims = 1;
+      if(niters <= 0)
+        niters = 1;
+    
+      for(int i=0; i<nsims; i++) {
+        fornax::System system("test");
+        master *masterEntity = new master(system, "Master");
+        slave *slaveEntity = new slave(system, "Slave");
+        thirdparty *thirdEntity = new thirdparty(system, "Party");
+        masterEntity->init(slaveEntity, thirdEntity, niters);
+        slaveEntity->init();
+        thirdEntity->init();
+        system.start();
+        std::cout << "Simulation ended at t=" << system.time() << std::endl;
+        delete masterEntity;
+        delete slaveEntity;
+        delete thirdEntity;
+      }
+    
+      // std::cout << system;
+      exit(0);
+    }
+`

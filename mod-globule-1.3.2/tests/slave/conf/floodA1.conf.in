@@ -1,0 +1,3 @@
+<Location /3rdparty/poolname>
+	Import REPLICA http://localhost:8056/export password1
+</Location>

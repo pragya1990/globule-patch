@@ -1,0 +1,8 @@
+<Location /export>
+  Export ON
+	ExportTo http://localhost:8057/3rdparty/poolname password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+

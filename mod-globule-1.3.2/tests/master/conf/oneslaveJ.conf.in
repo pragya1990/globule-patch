@@ -1,0 +1,9 @@
+# Test: Is an superfluously escaped character the ExportTo handled correctly?
+<Location /export>  
+  Export ON
+	ExportTo http://localhost:8057/3rd%70arty/poolname password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+

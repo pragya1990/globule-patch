@@ -1,0 +1,4 @@
+# Extra test: Are the extra spaces around end-of-tag handled correctly?
+<Location /3rdparty/poolname/   >  
+	Import REPLICA http://localhost:8056/export password1
+</Location>

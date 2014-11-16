@@ -1,0 +1,4 @@
+PsodiumMasterAuditor localhost:1234	password
+
+# Must have this too, as there is no default keys file
+PsodiumMasterSlaveKeys conf/slavekeys-goodsyntax.txt

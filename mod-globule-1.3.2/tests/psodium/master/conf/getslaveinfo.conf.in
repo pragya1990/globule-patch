@@ -1,0 +1,2 @@
+GlobuleAdminUrl http://localhost:8056/globulectl/
+PsodiumMasterSlaveKeys conf/slavekeys-goodsyntax.txt

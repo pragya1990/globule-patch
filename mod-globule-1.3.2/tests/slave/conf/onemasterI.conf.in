@@ -1,0 +1,5 @@
+# Test: Is an correctly escaped character the Import REPLICA handled correctly?
+# Hmmm... don't think %00 will work :-(
+<Location /3rdparty/poolname/>
+	Import REPLICA http://localhost:8056/expo%2Brt password1
+</Location>

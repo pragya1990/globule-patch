@@ -1,0 +1,2 @@
+# Error is: File in bad syntax
+PsodiumMasterSlaveKeys conf/slavekeys-badsyntax.txt

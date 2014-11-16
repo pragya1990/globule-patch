@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<HTML><HEAD>
+  <TITLE>Example Globule Javascript Page</TITLE>
+</HEAD><BODY>
+  <H1>Example Globule Javascript Page.</H1>
+  <script language="javascript" />
+    var globule = new Array();
+    var match, key, val, offset, end, items;
+    globule["policy"] = "unknown";
+    if(document.cookie.length > 0 &&
+       (offset = document.cookie.indexOf("GLOBULETRACE=")) != -1) {
+      offset += "GLOBULETRACE=".length;
+      if((end = document.cookie.indexOf(";", offset)) == -1)
+        end = document.cookie.length;
+      if(document.cookie.indexOf("\"") == offset) {
+        offset += 1;
+        end -= 1;
+      }
+      items = unescape(document.cookie.substring(offset,end)).split(",+");
+      for(var i=0; i<items.length; i++) {
+        if((match = /(\w+)\((\".*)/.exec(items[i]))) {
+          key = match[1];
+	  val = match[2];
+	  while(i<items.length && !(match = /(\"[^\"]*)\"\)/.exec(val))) {
+	    val = val + ",+" + items[++i];
+          }
+          if(match = /\"([^\"]*)\"/.exec(val))
+	    val = match[1];
+          while((pos = val.indexOf("+")) > -1) {
+            val=""+(val.substring(0,pos)+" "+val.substring(pos+1,val.length));
+	  }
+	  globule[key] = val;
+	} else if((match = /(\w+)\(([^\)]+)\)/.exec(items[i]))) {
+	  globule[match[1]] = match[2];
+	} else
+	  globule[items[i]] = 1;
+      }
+    } else {
+      globule["globule"] = 0;
+    }
+    if(globule["globule"]) {
+      document.write("This document was delivered to you with replication policy " + globule["policy"] + " by server " + globule["servedby"] + " as a " + (globule["method"]=="fetch" ? "uncached" : "cached") + " result.<p/>");
+      document.write("Other Globule traces are:<br><blockquote><pre>");
+      for(var n in globule) {
+        document.write(n + " = " + globule[n] + "\n");
+      }
+      document.write("</pre></blockquote>\n");
+    } else
+      document.write("No globule information as the server does not seem to be Globule enabled or configured such not to pass this information.");
+  </script>
+  <noscript>
+  No globule information because you do not have javascript enabled in your
+  web-browser.
+  </noscript>
+</BODY></HTML>

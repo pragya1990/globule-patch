@@ -1,0 +1,7 @@
+- No casting.
+- No +=, -=, etc on SEND return value.
+- Switch statement support.
+- Directy insert events into simulator from external source.
+- Remove need for REPLY statement in a-synchronous events.
+
+v Support for "->" operator

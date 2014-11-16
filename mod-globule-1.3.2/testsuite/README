@@ -1,0 +1,15 @@
+Set the Correct CWD and APACHE and MIME_TYPES_LOC variables in TestFunc.pm
+and you should be set to use all the .pl test programs.
+
+Edit the httpd.template file and the x.pl file you want to use for testing.
+Pay attention to the file locations, use the Unix notation for directories
+even on Windows.
+
+Directories should be created automatically for you in your Current
+Working Directory. index.html in the server root and 0.html thru 24.html
+are created in origins servers' directories.
+
+Under Windows, make sure your firewall is set up correctly !
+
+backuptest-rest.pl and backuptest-masteronly.pl are to be used under Windows,
+while a equivalent test script backuptest.pl can be used under Unix.

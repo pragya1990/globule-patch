@@ -1,0 +1,8 @@
+# Export generated files for floodcomb test as Globule docs
+<Location /flexport>
+  Export ON
+	ExportTo http://localhost:8057/flexport password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+

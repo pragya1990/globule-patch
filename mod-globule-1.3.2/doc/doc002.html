@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+<TITLE>
+Globule User Manual: 1  Introduction
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="doc001.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc003.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+<H2><A NAME="htoc1">1</A>&nbsp;&nbsp;<A NAME="sec:intro"></A>Introduction</H2>
+<P>
+Globule is a system that performs Web site replication. This means that WWW
+documents are copied across multiple machines where clients can access them.
+A document has one <EM>origin server</EM>, which is the machine where it is
+edited and published. The origin server usually belongs to the owner of the
+document. In addition, a document can have any number of <EM>replica
+servers</EM>, which host copies of the original document and deliver them to the
+clients. Replica servers do not necessarily belong to the owner of the
+document.
+</P>
+<P>
+Replicating a Web site has multiple advantages:
+</P>
+<UL><LI>
+The documents remain accessible to clients even if some servers
+ are down (provided that at least one of them is alive)
+<LI>The performance of the site is optimized, because clients can
+ fetch documents from a server close to them. Shorter
+ server-to-client transfer distances usually mean faster downloads.
+<LI>Multiple servers are better at handling a flash crowd than a
+ single server. Flash crowds are events where the request load of a
+ given site increases by several order of magnitudes within a few
+ minutes or seconds. This frequently happens, for example, when
+ <A HREF="http://en.wikipedia.org/wiki/Slashdot_effect">a page is being
+ linked to by Slashdot</A>.
+<LI>Playing with multiple servers is fun!
+</UL>
+<P>
+ Globule is designed as a third-party module for the
+ <A HREF="http://httpd.apache.org/docs-2.0/">Apache version 2.0.x Web
+ server</A>.
+ You will therefore benefit from all great
+ features that made Apache the Number One Server On The Internet. In
+ addition, Globule will provide replication functionalities to this
+ server.
+</P>
+<A NAME="toc1"></A>
+<H3><A NAME="htoc2">1.1</A>&nbsp;&nbsp;Globule Features</H3>
+<P>
+ Globule provides the following features:
+</P>
+<UL><LI>
+<B>Replication:</B> Web sites (or parts thereof) can be replicated
+ across multiple servers, even if the involved servers do not belong to the
+ same persons.
+<LI><B>Client redirection:</B> Clients accessing the site are
+ automatically redirected to one of the replicas. This can be done using HTTP
+ or DNS redirection. Moreover, Globule supports several policies which allow
+ one to decide to which replica each client should be redirected.
+<LI><B>Fault-tolerance:</B> Each Globule server periodically checks the
+ availability of the machines holding its replicas. In case one replica site
+ is down or misconfigured, it will stop redirecting client requests to this
+ replica until it has recovered. Globule also supports the creation of
+ backups of the origin server so that the site will function correctly even
+ if the origin server is down.
+<LI><B>Monitoring:</B> Globule allows administrators to monitor the
+ behavior of their system in three different ways. First, the logs of
+ requests addressed to replicas are transfered back to the origin server to
+ rebuild a ``global access log.'' Second, Globule can attach a cookie with
+ each delivered document containing information on how this request was
+ treated. Lastly it is possible to collect internal statistics on the usage
+ pattern and process them using configurable filters.
+<LI><B>Adaptive replication:</B> There are many ways by which a given
+ document can be replicated and document updates can be taken into
+ account. Unlike many other systems, Globule does not consider that there is
+ one policy that is best in all cases&nbsp;[<A HREF="doc010.html#pierre2002a"><CITE>2</CITE></A>]. Instead, it
+ supports multiple policies and periodically checks for each document which
+ policy is likely to offer best performance. When the current policy is not
+ optimal, it is automatically replaced with the best one.
+<LI><B>Dynamic document replication:</B> Globule can not only replicate
+ static documents but also scripts that are executed at the server to
+ generate content, such as PHP scripts. The scripts themselves are
+ replicated and executed on replica servers. If a PHP script accesses a
+ MySQL database, then Globule can also cache database queries to further
+ optimize performance&nbsp;[<A HREF="doc010.html#swami2005c"><CITE>3</CITE></A>].
+<LI><B>Configuration server:</B> The
+ <A HREF="http://www.globeworld.net/">Globe Broker System (GBS)</A> is a web
+ site where Globule users can register, meet each other, and decide to
+ replicate each other's content. Configuration files are automatically
+ generated, which saves most users from the need to read most of this
+ documentation.
+</UL>
+<P>
+In addition to the current features, we are currently conducting research on
+the following topics. When research is finished, these features will be
+integrated into Globule.
+</P>
+<UL><LI>
+<B>Latency estimation:</B> We developed a nifty way to estimate
+ the latency between any pair of nodes in the Internet, that is the
+ delay it takes to transfer a bit of information from one machine to
+ the other. Instead of sending gazillions of messages between every
+ pair of machines, our method is based on a very low number of actual
+ measurements&nbsp;[<A HREF="doc010.html#szymaniak2004a"><CITE>4</CITE></A>].
+ A prototype is running fine, but it will take a while before we can
+ integrate it into the Globule distribution.
+<LI><B>Replica placement:</B> Based on latency estimations, we are
+ now capable to analyze the location of clients requesting a Web
+ site, and derive a set of locations where replica servers should
+ ideally be placed&nbsp;[<A HREF="doc010.html#szymaniak2005a"><CITE>5</CITE></A>].
+<LI><B>Flash-crowd prediction and pro-active management:</B>
+ The request rate of a web-site can sometimes change drastically within
+ minutes such as when it is being referred in a popular bulletin board such
+ as SlashDot. Flash-crowds, as they are called, often jam web-servers to the
+ point where they become unusable. We are working on techniques to detect
+ the early stages of flash-crowds, and pro-actively replicate the concerned
+ sites such that they can serve every request
+ efficiently&nbsp;[<A HREF="doc010.html#baryshnikov2005"><CITE>1</CITE></A>].
+</UL>
+<A NAME="toc2"></A>
+<H3><A NAME="htoc3">1.2</A>&nbsp;&nbsp;<A NAME="sec:intro:terminology"></A>Terminology</H3>
+<br><HR WIDTH="80%" SIZE=2>
+ <DIV ALIGN=center>
+ <BR>
+<DIV ALIGN=center><B>Figure 1: </B><FONT color="#A00000"><B> Globule Model</B><A NAME="fig:model"></A></FONT></DIV><BR>
+
+ <IMG SRC="model.jpg"> 
+ </DIV>
+ <HR WIDTH="80%" SIZE=2><br>
+<P>
+Globule makes a strong distinction between a site and a server.
+<A NAME="sec:intro:term:site"></A> A <EM>site</EM> is defined as a collection
+of documents that belong to a given user.
+<A NAME="sec:intro:term:server"></A> A <EM>server</EM> is a machine connected
+to a network, which runs an instance of the Globule software. Each server may
+host one or more sites, that is, be capable of delivering the site's content
+to its clients. As shown in Figure&nbsp;<A HREF="#fig:model">1</A>, servers can be classified
+in four categories according to the role they play with respect to this site.
+</P>
+<P>
+<A NAME="sec:intro:term:origin"></A> Each site has one <EM>Origin server</EM>,
+which typically belongs to the site owner. The origin contains the
+authoritative version of all documents of the site. It is also in charge of
+making all decisions on where, when and how replication of the site should
+take place.
+</P>
+<P>
+<A NAME="sec:intro:term:replica"></A> The origin server is helped delivering 
+documents by any number of <EM>replica servers</EM>. Replica servers replicate
+documents locally and deliver them to the clients. A replica server for a site
+is typically operated by a different user than its origin, so the replica's
+administrator may impose restrictions on the amount of resources (disk space,
+bandwidth, etc,) that the hosted site can use on their machine. As a result,
+each replica server typically contains only a partial copy of its hosted
+site. Similarly to a caching proxy, when requested for a document not present
+locally, a replica server fetches the document from its origin before
+delivering it to the client.
+</P>
+<P>
+<A NAME="sec:intro:term:backup"></A> When a replica server needs to fetch a
+document from the origin, it obviously requires that the origin server is
+available to deliver the document. Remember, however, that the origin server
+is typically simply the desktop machine of the site owner. Such machines are
+often unavailable for a multitude of reasons ranging from a voluntary shutdown
+to a network failure. To overcome this problem, the origin server can define
+any number of <EM>backup servers</EM>. Backups are very similar to replica
+servers, except that they hold a <EM>full copy</EM> of the hosted site. If a
+replica cannot contact the origin server, then it can obtain the requested
+information from any backup. Backup servers also perform the role of a
+regular replica server, helping serving the content of a site.
+</P>
+<P>
+<A NAME="sec:intro:term:redirector"></A> Once documents have been replicated 
+across multiple servers, one needs to automatically redirect client requests
+to one of the replicas. This is done by one or more <EM>redirectors</EM>,
+which know the list of all replica and backup servers for the site, monitor
+their status, and redirect client requests to one of the currently available
+servers. Redirectors can use two different mechanisms for redirection: in
+HTTP redirection a redirector responds to HTTP requests from the clients with
+a redirection return code 302. Alternatively, in DNS redirection, a
+redirector implements a specialized DNS server that resolves the site's name
+into the IP address of the destination replica.</P>
+<P>
+It should be clear that the distinction between origin, replica, backup and
+redirector servers refers only to the role that a given server takes with
+respect to any given site. The same server may for example simultaneously act
+as the origin and one of the redirectors for its owner's site, as a backup for
+a few selected friend's sites, as a replica for other sites, and as a
+redirector for yet other sites.
+</P>
+<A NAME="toc3"></A>
+<H3><A NAME="htoc4">1.3</A>&nbsp;&nbsp;Known issues/limitations</H3>
+<P>
+<UL><LI>
+Globule only works with Apache version 2.0.x. It does <EM>not</EM>
+ work with Apache version 1.3.x, and there is no plan on changing
+ this.<BR>
+<BR>
+Apache version 2.1/2.2 is not supported up to and including Globule release
+ 1.3.1. This may change in future releases of Globule.
+</UL>
+</P>
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <HR>
+<A HREF="doc001.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc003.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

@@ -1,0 +1,11 @@
+# Combined test:
+# 1. Is an upper case scheme in the Import REPLICA handled correctly?
+# 2. Is an upper case hostname in the Import REPLICA handled correctly?
+# 3. Is an correctly escaped character the Import REPLICA handled correctly?
+# 4. Is an superfluously escaped character the Import REPLICA handled correctly?
+# 5. Is a correctly escaped character the import path handled correctly?
+# 6. Is a superfluously escaped character the import path handled correctly?
+
+<Location /3rdparty/p%6Fol%2Bname/   >  
+	Import REPLICA HTTP://LOCALHOST:8056/exp%6F%2Brt password1
+</Location>

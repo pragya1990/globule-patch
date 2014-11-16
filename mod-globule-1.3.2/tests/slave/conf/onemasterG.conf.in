@@ -1,0 +1,4 @@
+# Test: Is an upper case scheme in the Import REPLICA handled correctly?
+<Location /3rdparty/poolname/   >  
+	Import REPLICA HTTP://localhost:8056/export password1
+</Location>

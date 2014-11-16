@@ -1,0 +1,52 @@
+# Change this to your e-mail address
+ServerAdmin berry@cs.vu.nl
+
+KeepAlive       On
+HostnameLookups Off
+
+<IfModule mpm_winnt.c>
+    LoadModule log_config_module modules/mod_log_config.so
+    LoadModule mime_module modules/mod_mime.so
+    LoadModule dir_module modules/mod_dir.so
+    Win32DisableAcceptEx
+    ThreadsPerChild      20
+    MaxRequestsPerChild  0
+</IfModule>
+
+<IfModule worker.c>
+    StartServers         1
+    MaxClients           15
+    MinSpareThreads      15
+    MaxSpareThreads      15
+    ThreadsPerChild      15
+    MaxRequestsPerChild  0
+</IfModule>
+
+<IfModule perchild.c>
+    NumServers           1
+    StartThreads         15
+    MinSpareThreads      15
+    MaxSpareThreads      15
+    MaxThreadsPerChild   15
+    MaxRequestsPerChild  0
+</IfModule>
+
+<IfModule prefork.c>
+    StartServers         1
+    MaxClients           15
+    MaxRequestsPerChild  0
+</IfModule>
+
+LoadModule globule_module modules/mod_globule.so
+
+DirectoryIndex index.html index.htm
+
+<Location /server-info>
+    SetHandler server-info
+</Location>
+
+<Location /server-status>
+    SetHandler server-status
+</Location>
+
+

@@ -1,0 +1,9 @@
+# Test: slave's import path has single path element
+<Location /export   >  
+  Export ON
+	ExportTo http://localhost:8057/poolname password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+

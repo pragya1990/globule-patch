@@ -1,0 +1,16 @@
+# Does Globule work correctly when the server is used under another hostname
+# than the default?
+
+# Appears to work without port# too. TODO: get port# from somewhere, 
+# we can set it to the default of 8529, but that default is set by the
+# Apache test framework and could change.
+ServerName localhost.cs.vu.nl
+
+<Location /export   >  
+  Export ON
+	ExportTo http://localhost:8057/3rdparty/poolname password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+

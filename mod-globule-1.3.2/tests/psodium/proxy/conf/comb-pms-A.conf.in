@@ -1,0 +1,18 @@
+##LoadModule psodium_module     modules/mod_psodium.so
+##LoadModule psodium_http_module     modules/mod_psodium.so
+
+# Otherwise Globule crashes and it is loaded as well in these tests
+GlobuleAdminUrl http://localhost:8056/globulectl/
+
+PsodiumProxyRequests      ON
+PsodiumClientDoubleCheckProbability     100
+PsodiumTempStorageDir     psodium-temp/
+
+# Keep out bad guys
+<PsodiumProxy *>
+	Order Deny,Allow
+	Deny from all
+	Allow from 130.37.0.0/16
+	Allow from 127.0.0.0/24
+	Allow from 82.161.166.195/32
+</PsodiumProxy>

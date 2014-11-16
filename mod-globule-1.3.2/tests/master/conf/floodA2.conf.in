@@ -1,0 +1,6 @@
+# Export generated files for flood test as Globule docs
+<Location /flexport>
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+

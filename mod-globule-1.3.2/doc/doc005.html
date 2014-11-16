@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+<TITLE>
+Globule User Manual: 4  Supporting utilities
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="doc004.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc006.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+<H2><A NAME="htoc38">4</A>&nbsp;&nbsp;Supporting utilities</H2>
+<A NAME="toc13"></A>
+<H3><A NAME="htoc39">4.1</A>&nbsp;&nbsp;GlobuleUtil</H3>
+<P>
+The <CODE>globuleutil</CODE> section is used to convert a report-log, as found in
+the <CODE>.htglobule</CODE> directory of origin web-sites into access-log files.
+Multiple report-log and Apache access-log can be merged and sorted on the fly.
+</P>
+<P>
+The GlobuleUtil program is discussed in more detail in
+section&nbsp;<A HREF="doc004.html#sec:conf:monitoring:globuleutil">3.4.3</A>.
+</P>
+<A NAME="toc14"></A>
+<H3><A NAME="htoc40">4.2</A>&nbsp;&nbsp;GlobuleCtl</H3>
+<P>
+The <CODE>globulectl</CODE> script is installed along with the Globule module. It
+serves the same purpose as the apachectl script used is a default Apache
+installation but has a number of extensions:
+</P>
+<P>
+<UL><LI>
+In case of a installer based setup, it also starts/stops any supporting
+software, such as the optional MySQL database.
+<LI>It case when using the Globule Broker Service, which generates the Apache <CODE>httpd.conf</CODE> configuration file for you.
+</UL>
+</P>
+<PRE>
+<b>globulectl</b> <b>stop</b>
+<b>globulectl</b> <b>start</b>
+<b>globulectl</b> <b>restart</b>
+<b>globulectl</b> <b>graceful</b>
+<b>globulectl</b> <b>configtest</b>
+<b>globulectl</b> <b>monitorhost</b> [ <i>logging-server</i> ]
+<b>globulectl</b> [ -v ] [ --no-serial ] [ --no-restart ] <b>check</b>
+<b>globulectl</b> <b>installcrontab</b>
+<b>globulectl</b> <b>installconf</b>
+<b>globulectl</b> <b>webalizer</b>
+<b>globulectl</b> <b>webalizer</b> <i>directory</i> [ <i>servername</i> ] [ <i>path</i> ]
+</PRE>
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <HR>
+<A HREF="doc004.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc006.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

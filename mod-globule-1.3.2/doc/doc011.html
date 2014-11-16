@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD><TITLE>Notes</TITLE>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+</HEAD>
+<BODY >
+<HR WIDTH="50%" SIZE=1><DL><DT><A NAME="note1" HREF="doc004.html#text1"><FONT SIZE=5>1</FONT></A><DD>It cannot hurt adding this to all occurrences,
+although it is strictly only needed for Globule sections and the URL specified
+by GlobuleAdminURL.
+<DT><A NAME="note2" HREF="doc004.html#text2"><FONT SIZE=5>2</FONT></A><DD>In this configuration we must have a
+separate global ServerName, different from the one we will be replicating in
+this example. This because <TT>http://www.revolutionware.net/</TT> is being
+exported from ``/'' and we had learned that the URL specified by
+GlobuleAdminURL cannot overlap with an exported origin web-site. If you would
+only replicate a partial site, one can use just a single hostname.
+<DT><A NAME="note3" HREF="doc004.html#text3"><FONT SIZE=5>3</FONT></A><DD>With HTTP redirection
+this does not do a lot of good, as new browsing clients cannot be redirected
+to the replica servers when the origin is down, but this feature will become
+more valuable with DNS redirection
+<DT><A NAME="note4" HREF="doc004.html#text4"><FONT SIZE=5>4</FONT></A><DD>Note that in the backup server's config below the
+GlobuleDefaultReplicationPolicy is set to TTL. This is the recommended
+configuration: it simply means that, should a replica server fetch a document
+copy from the backup, it would keep its copy for a given duration before
+trying to revalidate it from the origin or its replica.
+<DT><A NAME="note5" HREF="doc004.html#text5"><FONT SIZE=5>5</FONT></A><DD>Do not use specific names for any other purpose, unless you
+<EM>really</EM> know what you are doing! In particular, if one server takes
+part in the replication of two different sites, then it must have two
+different specific names, one for each site and these should not be the
+original (local) hostnames.
+<DT><A NAME="note6" HREF="doc004.html#text6"><FONT SIZE=5>6</FONT></A><DD>If your registrar provides you with a web interface to assign
+DNS records, the exact syntax may be different. Check your registrar's
+documentation.
+<DT><A NAME="note7" HREF="doc004.html#text7"><FONT SIZE=5>7</FONT></A><DD>The regular access-logs are also only
+partially sorted as the timestamp recorded is the start of a web-page
+transfer, but the access is written into the access-log at the end of the
+transfer. This interval may already be large, but with the accumulated
+Globule report-log this interval may be larger.
+<DT><A NAME="note8" HREF="doc006.html#text8"><FONT SIZE=5>8</FONT></A><DD>or ServerName, but these are
+not user in normal configurations.
+</DL>
+
+</BODY></HTML>

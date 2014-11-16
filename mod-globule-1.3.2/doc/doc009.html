@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.07">
+
+<link href="Globule.css" rel="stylesheet" title="preferred"/>
+<TITLE>
+Globule User Manual: B  File structures and protocols
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="doc008.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc010.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+    <a class="topnav" href="http://www.globule.org/">Globule</a> 
+    > <a class="topnav" href="index.html">Documentation</a> <br/>
+    <table class="pagemain"><tr><td>
+  
+<H2><A NAME="htoc102">B</A>&nbsp;&nbsp;File structures and protocols</H2>
+<A NAME="toc30"></A>
+<H3><A NAME="htoc103">B.1</A>&nbsp;&nbsp;<A NAME="sec:reportlog-format"></A>
+ <TT>report.log</TT> structure</H3>
+<P>
+Each section of a web-site being exported or imported has a <CODE>.htglobule</CODE>
+directory which contains accounting information for that web-site section. In
+this directory resides a.o. the <CODE>report.log</CODE>. This log contains
+information which should be collected at the origin server to make decisions,
+statistics and a merged log of requests (which can be converted into a
+access.log).
+</P>
+<P>
+The report.log format is completely different than apache-style log files,
+because this report.log contains much more information than just requests and
+has fields which are more suitable for a distributed environment than the
+traditional access log formats such as common and combined log formats
+</P>
+<P>
+To aid future development, the report.log is not a strict format, but instead
+is a free-format file with limited rules on how to separate records of
+requests and other relevant data and the fields of data inside a record. It
+does not describe which fields in which order should be present.
+</P>
+<P>
+The report.log is a series of unstructured records of events. Each record is
+contained on a single line. Lines which start with a hash sign (<CODE>#</CODE>)
+should be ignored and can be used for comments. Each line contains one or
+multiple fields with data. Fields are in principle separated with one or
+multiple spaced or tabs.
+</P>
+<P>
+A field is either a single letter, used in the report.log to identify
+different type of events or is a key--value pair. Key and value are seperated
+with either a equal sign (<CODE>=</CODE>), a colon (<CODE>:</CODE>) or semi-colon
+(<CODE>;</CODE>). The different separators serve different purposes:
+<DL COMPACT=compact><DT><DD><B><TT>=</TT></B><BR>
+Used to separate a key from a value, where the value can only be a number.
+ These numbers should bare some relation to each other. For instance,
+ identifiers in principle bear no relation to each other as two persons with
+ ID 3 and one with ID 5 have no logical personal bonds with each other, not
+ can you induce that there should also be a person with ID 4.<BR>
+However a timestamp would be suitable to use with this, as there is a
+ logical enumeration of time.
+<DT><DD><B><TT>;</TT></B><BR>
+The semi-colon is a general key--value pair seperator, where the value field
+ should not be interpreted as a number, but as some identifier. Normally,
+ there is a limited amount of possible values for a certain key in the
+ report.log. In other words; you should not expect to see generic text, but
+ only keywords or identifiers as values in a semi-colon field.
+<DT><DD><B><TT>:</TT></B><BR>
+The colon field serves the same purpose as the semi-colon separator, but the
+ colon can only be used as the last key--value pair and the value in
+ that comes after the colon may contain spaces and/or tabs.
+</DL>
+</P>
+<P>
+The following event types can be in the report.log:
+<DL COMPACT=compact><DT><DD><B><TT>R</TT></B> a document has been requested by some browsing user;
+<DT><DD><B><TT>U</TT></B> a document update has been detected;
+<DT><DD><B><TT>I</TT></B> the document has been invalidated;
+<DT><DD><B><TT>A</TT></B> to indicate that the policy of a document has
+ changed;
+<DT><DD><B><TT>E</TT></B> to indicate that a document has been evicted from
+ the cache.
+</DL>
+</P>
+<P>
+The following fields can be expected:
+<DL COMPACT=compact><DT><DD><TT>t=</TT> The timestamp when the event occured.
+<DT><DD><TT>path:</TT> The path component of a URL, starting without the initial
+location from which it was exported (or imported).
+<DT><DD><TT>old;</TT> The previous (replication) policy that has been used.
+<DT><DD><TT>new;</TT> The new (replication) policy to be used on a document.
+<DT><DD><TT>lastmod=</TT> A timestamp with the last modification time of the
+ document.
+<DT><DD><TT>docsize=</TT> The (new) document size.
+<DT><DD><TT>client;</TT> The IP number of the peer (e.g. the browsing user doing
+ the request).
+<DT><DD><TT>elapsed=</TT> The amount of time needed to do something (serve a
+ request for instance).
+<DT><DD><TT>sndsize=</TT> The number of bytes reported to be shipped.
+<DT><DD><TT>browser;</TT> The User-Agent reported from the browsing user (very
+ optional information).
+<DT><DD><TT>referer</TT> The Referer field in the request reported by the
+ browsing user (very optional information).
+</DL>
+</P>
+<P>
+Timestamps and durations are in <CODE>apr_time_t</CODE> precision, normally
+microseconds. Sizes are in bytes.
+</P>
+<P>
+Normally, but not guaranteed, the following fields are present for each event
+type:
+<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=1>
+<TR><TD ALIGN=left NOWRAP><B><TT>R</TT></B></TD>
+<TD ALIGN=left NOWRAP>t, client, elapsed, sndsize, browser, referer, path</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><B><TT>U</TT></B></TD>
+<TD ALIGN=left NOWRAP>t, lastmod, docsize, path</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><B><TT>A</TT></B></TD>
+<TD ALIGN=left NOWRAP>t, old, new, path</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><B><TT>E</TT></B></TD>
+<TD ALIGN=left NOWRAP>t, path</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><B><TT>I</TT></B></TD>
+<TD ALIGN=left NOWRAP>t, path</TD>
+</TR></TABLE>
+</P>
+
+
+
+
+
+
+    <address>globule@globule.org<br>
+  June 29, 2006
+    </address>
+    </td></tr></table>
+  <HR>
+<A HREF="doc008.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="doc010.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

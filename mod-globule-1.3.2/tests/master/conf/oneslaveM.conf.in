@@ -1,0 +1,15 @@
+# Combined test: 
+# 1. Is an upper case scheme in the ExportTo handled correctly?
+# 2. Is an upper case hostname in the ExportTo handled correctly?
+# 3. Is an correctly escaped character the ExportTo handled correctly?
+# 4. Is an superfluously escaped character the ExportTo handled correctly?
+# 5. Is a correctly escaped character the export path handled correctly?
+# 6. Is a superfluously escaped character the export path handled correctly?
+<Location /exp%6F%2Brt>  
+  Export ON
+	ExportTo HTTP://LOCALHOST:8057/3rd%70arty/pool%2Bname password1 
+	DefaultReplicationPolicy Invalidate
+	DefaultRedirectPolicy    RR
+</Location>
+
+

@@ -1,0 +1,6 @@
+<!--#set var="TITLE" value="Cannot process request!"
+--><!--#include virtual="top.shtml" -->
+
+    The server does not support the action requested by the browser.
+   
+<!--#include virtual="bottom.shtml" -->

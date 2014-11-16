@@ -1,0 +1,6 @@
+# Test: Is a correctly escaped character the import path handled correctly?
+# For this test, the char must be a relatively benign character, as we must 
+# create a directory in ApacheRoot/globule for the import path. %2B is '+'
+<Location /3rdparty/pool%2Bname/>  
+	Import REPLICA http://localhost:8056/export password1
+</Location>

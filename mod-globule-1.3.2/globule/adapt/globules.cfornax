@@ -1,0 +1,505 @@
+`
+#include <stdio.h>
+#include <stdarg.h>
+#include <math.h>
+#include <time.h>
+#include <iostream>
+#include <string>
+#include <set>
+#include <vector>
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+#include <apr.h>
+#include <apr_strings.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+#ifndef MAIN
+#include "policy/ReplPolicy.hpp"
+#include "resource/OriginHandler.hpp"
+#include "event/SwitchEvent.hpp"
+#endif
+#include "reportreader.h"
+#include "utilities.h"
+#ifdef MAIN
+const char* servernamestr;
+const char* servername() { return servernamestr; };
+#define DEFAULT_TTL    10
+#define DEFAULT_MAXTTL 86400
+class GlobuleEvent {
+public:
+  apr_pool_t* pool;
+  GlobuleEvent(apr_pool_t*p) : pool(p) { };
+};
+extern void ap_log_assert();
+void ap_log_assert(char *szExp, const char *szFile, int nLine)
+{
+  //assert(!szExp);
+}
+std::string
+mkstring::format(const char *fmt, va_list ap)
+  throw()
+{
+  va_list ap2;
+#ifdef WIN32
+  ap2 = ap;
+#else
+  va_copy(ap2, ap);
+#endif /* WIN32 */
+  // vsnprintf is a common but non-standard extension.
+  // I am assuming C99 behaviour when the first two args
+  // are zero: not all implementations have this behaviour.
+#ifdef MANDRAKE10_PATCH
+  size_t sz = vsnprintf(NULL, 0, fmt, ap);
+#else
+  size_t sz = apr_vsnprintf(NULL, 0, fmt, ap);
+#endif
+  // If your string implementation guarantees contiguity
+  // of storage, you can use that.  AFAIK, the standard
+  // doesn't guarantee this for strings but does for vectors
+  std::vector<char> v(sz+1, '\0');
+#ifdef MANDRAKE10_PATCH
+  vsnprintf(&v[0], sz+1, fmt, ap2);
+#else
+  apr_vsnprintf(&v[0], sz+1, fmt, ap2);
+#endif
+  return std::string(&v[0], sz);
+}
+
+std::string
+mkstring::format(const char *fmt, ...)
+  throw()
+{
+  va_list ap;
+  va_start(ap, fmt);
+  // vsnprintf is a common but non-standard extension.
+  // I am assuming C99 behaviour when the first two args
+  // are zero: not all implementations have this behaviour.
+#ifdef MANDRAKE10_PATCH
+  size_t sz = vsnprintf( NULL, 0, fmt, ap );
+#else
+  size_t sz = apr_vsnprintf( NULL, 0, fmt, ap );
+#endif
+#ifdef MANDRAKE10_PATCH
+  va_end(ap);
+  va_start(ap, fmt);
+#endif
+  // If your string implementation guarantees contiguity
+  // of storage, you can use that.  AFAIK, the standard
+  // doesn't guarantee this for strings but does for vectors
+  std::vector<char> v(sz+1, '\0');
+#ifdef MANDRAKE10_PATCH
+  vsnprintf(&v[0], sz+1, fmt, ap);
+#else
+  apr_vsnprintf(&v[0], sz+1, fmt, ap);
+#endif
+  va_end(ap);
+  return std::string(&v[0], sz);
+}
+#endif
+
+using std::make_pair;
+using std::string;
+
+#undef BUG
+#define BUG(ARG)
+
+class server;
+typedef std::set<server *> collection;
+typedef std::set<server *>::const_iterator iterator;
+class document
+{
+public:
+  long lastmod;
+  long lastupd;
+  int docsize;
+  int cost;
+  collection replicas;
+  document() : lastmod(0), lastupd(-1), docsize(0) { };
+};
+
+template <typename T>
+class array
+{
+private:
+  bool iscopy;
+  std::vector<T>* elts;
+public:
+  array() {
+    elts = new std::vector<T>();
+    iscopy = false;
+  };
+  array(int initsize) {
+    elts = new std::vector<T>(initsize);
+    iscopy = false;
+  };
+  array(const array& cpy) {
+    elts = cpy.elts;;
+    iscopy = true;
+  };
+  array& operator=(const array& cpy) {
+    elts = cpy.elts;;
+    iscopy = true;
+    return *this;
+  };
+  ~array() {
+    if(elts && !iscopy)
+      delete elts;
+  };
+  unsigned int count() {
+    return elts->size();
+  };
+  T& operator[](int idx) { 
+    // return elts->at(idx);
+    return (*elts)[idx];
+  };
+};
+typedef array<document> documents;
+
+class replpolicy {
+private:
+  string replname;
+protected:
+  long maxttl;
+  bool invalidation;
+public:
+  replpolicy() : replname(""), maxttl(-1), invalidation(false) { };
+  replpolicy(char *name, long ttl=LONG_MAX, bool invalidate=false)
+    : replname(name), maxttl(ttl), invalidation(invalidate) { };
+  replpolicy(char *name, bool invalidate)
+    : replname(name), maxttl(LONG_MAX), invalidation(invalidate) { };
+  string& name() { return replname; };
+  virtual ~replpolicy() { };
+  virtual long ttl(document& doc) { return maxttl; };
+  virtual bool invalidate(document& doc) { return invalidation; };
+};
+class alexpolicy : public replpolicy {
+public:
+  alexpolicy(char *name, long maxttl) : replpolicy(name, maxttl) { };
+  virtual ~alexpolicy() { };
+  virtual long ttl(document& doc) {
+    long t = (doc.lastupd - doc.lastmod) / 5;
+    if(t > maxttl)
+      t = maxttl;
+    return t;
+  };
+};
+static long workaround1(replpolicy& policy, document& doc) {
+  return policy.ttl(doc);
+}
+static bool workaround2(replpolicy& policy, document& doc) {
+  return policy.invalidate(doc);
+}
+`
+
+entity server {
+  typename replpolicy policy;
+  double setupTime, transferTime;
+  bool ismaster;
+  entity server master;
+  typename documents docs;
+
+  int requests;
+
+  // update signal cannot be threaded because of concurrent access to replicas
+  signal void update(int docid, int size) {
+    int t1, t2;
+    entity server peer;
+    typename iterator iter;
+    REPLY;
+    docs[docid].lastmod = TIME;
+    docs[docid].lastupd = TIME;
+    docs[docid].docsize = size;
+    if(workaround2(policy,docs[docid])) {
+      if(!docs[docid].replicas.empty()) {
+        t1 = TIME;
+        for(iter=docs[docid].replicas.begin();
+            iter!=docs[docid].replicas.end();
+            iter++)
+        {
+          peer = *iter;
+          SEND peer -> invalidate();;
+        }
+        t2 = TIME;
+        docs[docid].cost += t2 - t1;
+        docs[docid].replicas.clear();
+      }
+    }
+  }
+  signal void invalidate(int docid) {
+    WAIT llrint(setupTime*1000000);
+    docs[docid].lastupd = -1;
+    REPLY;
+  }
+  signal subscribe(int docid, entity server replica) {
+    docs[docid].replicas.insert(replica);
+    REPLY;
+  }
+  threaded typename document retrieve(int docid) {
+    typename apr_int64_t curtime;
+    if((docs[docid].lastupd < 0) ||
+        (TIME - docs[docid].lastupd > workaround1(policy,docs[docid]))) {
+      if(!ismaster) {
+        docs[docid] = SEND master -> retrieve();;
+        if(workaround2(policy,docs[docid]))
+          SEND master -> subscribe(docid, this);;
+      }
+      docs[docid].lastupd = TIME;
+    }
+    ++requests;
+    curtime = TIME;
+    printf("%s: retrieve called at %lld, #active requests = %d\n", name().c_str(), curtime, requests);
+    WAIT llrint((setupTime + transferTime * docs[docid].docsize)*1000000);
+    curtime = TIME;
+    printf("%s: retrieve complete at %lld, #active requests = %d\n", name().c_str(), curtime, requests);
+    --requests;
+    REPLY docs[docid];
+  }
+  main(double theSetupTime, double theTransferTime,
+       boolean isTheMaster, entity server theMaster,
+       typename replpolicy thePolicy, typename documents theDocuments)
+  {
+    ismaster     = isTheMaster;
+    master       = theMaster;
+    policy       = thePolicy;
+    setupTime    = theSetupTime;
+    transferTime = theTransferTime;
+    docs         = theDocuments;
+    requests = 0;
+    for(;;)
+      RECV update, retrieve, invalidate, subscribe;
+  }
+
+};
+
+entity dispatcher {
+  long reallastmod; // Bug in parser makes usage of name lastmod impossible at this time
+  entity server master;
+  entity server[] servers;
+  typename documents docs;
+  signal update(int docid, int size) {
+    reallastmod = TIME;
+    SEND master -> update(docid, size);;
+    REPLY;
+  }
+  threaded void retrieve(int docid, int server) {
+    typename document doc;
+    int t1, t2;
+    REPLY;
+    t1 = TIME;
+    doc = SEND servers[server] -> retrieve(docid);;
+    t2 = TIME;
+    if(doc.lastmod != docs[docid].lastmod)
+      docs[docid].cost += 3600;
+    else
+      docs[docid].cost += t2 - t1;
+  }
+  main(typename documents theDocuments, entity server peer, entity server[] peers) {
+    typename apr_uint32_t docid;
+    master  = peer;
+    servers = peers;
+    docs    = theDocuments;
+    for(docid=0; docid<docs.count(); docid++)
+      SEND master -> update(docid, docs[docid].docsize);;
+    for(;;)
+      RECV update, retrieve;;
+  }
+};
+
+`
+#undef BUG
+#define BUG(ARG) ARG
+static long
+evaluatePolicy(reportreader &input, long *docstate, replpolicy policy)
+{
+  const double setup = 3.0;       /* 3 seconds, which is huge */
+  const double delay = 1.0/65536; /* 64Kbyte/second, which is 1/3-1/2 of
+                                     cable downstream speed */
+  int i, nservers, ndocuments;
+  fornax::Time simtime;
+  int timeFieldID   = 0;
+  int serverFieldID = 0;
+  int docFieldID    = 0;
+
+  fornax::System system("globule");
+  nservers   = input.count("server") - 1;
+  ndocuments = input.count("path") - 1;
+
+  BUG(fprintf(stderr, "ndocuments=%d nservers=%d\n", ndocuments, nservers));
+
+  if(nservers > 0) {
+    array<document> docs(ndocuments);
+    array<document> *sdocs = new array<document>[nservers];
+    for(i=0; i<nservers; i++)
+      sdocs[i] = docs;
+    for(i=0; i<ndocuments; i++) {
+      docs[i].cost = 0;
+      docs[i].docsize = docstate[i];
+    }
+
+    server **serverEntities = new server *[nservers];
+    serverEntities[0] = new server(system, "master");
+    for(i=1; i<nservers; i++)
+      serverEntities[i] = new server(system, mkstring::format("slave#%d",i));
+    dispatcher *dispatcherEntity = new dispatcher(system, "dispatcher");
+    
+    dispatcherEntity->init(docs, serverEntities[0], serverEntities);
+    serverEntities[0]->init(setup,delay, true,serverEntities[0],
+                            policy, docs);
+    for(i=1; i<nservers; i++)
+      serverEntities[i]->init(setup,delay, false,serverEntities[0],
+                              policy, sdocs[i-1]);
+    
+    for(input.reset(); input.more(); input.next()) {
+      switch(*(input.field())) {
+      case 'U': // document was updated.
+      case 'R': // document was retrieved
+        if(docstate[input.field(&docFieldID,"path") - 1] >= 0) {
+          switch(*(input.field())) {
+          case 'U': {
+            fornax::Event<struct dispatcher_update>* event;
+            event = dispatcherEntity->send_update(
+                                    input.field(&timeFieldID, "t"),
+                                    input.field(&docFieldID,  "path") - 1,
+                                    input.field(&docFieldID,  "docsize"));
+            event->selfDispose();
+            break;
+          }
+          case 'R': {
+            fornax::Event<struct dispatcher_retrieve>* event;
+            event = dispatcherEntity->send_retrieve(
+                                    input.field(&timeFieldID,   "t"),
+                                    input.field(&docFieldID,    "path") - 1,
+                                    input.field(&serverFieldID, "server") - 1);
+            event->selfDispose();
+            break;
+          }
+          default:
+            abort();
+          }
+        }
+        break;
+      case 'A': // policy of document was adapted
+        break;
+      default:
+        break;
+      }
+    }
+
+    system.start();
+    simtime = system.time();
+    if(!system.check())
+      std::cerr << system;
+
+    for(i=0; i<ndocuments; i++)
+      docstate[i] = docs[i].cost;
+
+    delete dispatcherEntity;
+    for(i=0; i<nservers; i++)
+      delete serverEntities[i];
+    delete[] serverEntities;
+    delete[] sdocs;
+    return simtime;
+
+  } else
+
+    return 0;
+}
+
+#ifdef MAIN
+static void
+adapt(const GlobuleEvent& evt, const char* fname = "report.log",
+      size_t beginoffset = 0, ssize_t endoffset = -1)
+#else
+void
+OriginHandler::adapt(const GlobuleEvent& evt,
+                     const char *fname, size_t beginoffset, size_t endoffset) throw()
+#endif
+{
+  long simtime;
+  int i, d;
+  char *fields[] = { "t", "server", "docsize", "path", NULL };
+
+  BUG(fprintf(stderr,"policy adaptation run\n"));
+
+  // Read input
+  Mappings maps;
+  maps.insert(make_pair<string,Mapping>("",Mapping(false)));
+  for(i=0; fields[i]; i++)
+    maps[""] += fields[i];
+  maps["server"][servername()]; // for this to be element "1" (!)
+  reportreader input(evt.pool, maps, fname, beginoffset, endoffset);
+
+
+  const int npolicies = 4;
+  replpolicy* policies[npolicies];
+  // policies[0] = replpolicy("MirrorNoCons"); never choose this one
+  policies[0] = new replpolicy("PureProxy", -1, false);
+  policies[1] = new replpolicy("Ttl", DEFAULT_TTL, false);
+  policies[2] = new replpolicy("Invalidate", true);
+  policies[3] = new alexpolicy("Alex", DEFAULT_MAXTTL);
+
+  // Simulate input
+  int ndocuments   = input.count("path");
+  long *docstate   = new long[ndocuments];
+  long *bestcost   = new long[ndocuments];
+  int  *bestpolicy = new int[ndocuments];
+  for(d=0; d<ndocuments; d++)
+    bestpolicy[d] = -1;
+  for(i=0; i<npolicies; i++) {
+    for(d=0; d<ndocuments; d++)
+      docstate[d] = 0;
+    simtime = evaluatePolicy(input, docstate, *(policies[i]));
+    for(d=0; d<ndocuments; d++) {
+      BUG(fprintf(stderr,"%s\t%d\t%ld\n",policies[i]->name().c_str(),d,docstate[d]));
+      if((bestpolicy[d] < 0 || bestcost[d] > docstate[d]) && docstate[d] > 0) {
+        bestpolicy[d] = i;
+        bestcost[d]   = docstate[d];
+      }
+    }
+  }
+  for(d=0; d<ndocuments; d++)
+    if(bestpolicy[d] >= 0) {
+      BUG(fprintf(stderr,"%s\t%s\t%ld\n",maps["path"][d+1].c_str(),policies[bestpolicy[d]]->name().c_str(),bestcost[d]));
+#ifndef MAIN
+      switchpolicy(evt.pool, evt.context, maps["path"][d+1].c_str(),
+               policies[bestpolicy[d]]->name().c_str());
+#endif
+    } else {
+      BUG(fprintf(stderr,"%s\tnone\t\n",maps["path"][d+1].c_str()));
+    }
+  //DPRINTF(DEBUG3, ("evaluated policy of %d documents with %d policies with approx. %d requests.\n",ndocuments,npolicies,numofinputlines));
+
+  for(i=0; i<npolicies; i++)
+    delete policies[i];
+  delete docstate;
+  delete bestcost;
+  delete bestpolicy;
+}
+
+
+#ifdef MAIN
+#ifndef CHECK
+#define CHECK(ARG) \
+  do{if(ARG){fprintf(stderr,"call " #ARG " failed\n");exit(1);}}while(0)
+#endif
+int
+main(int argc, char* argv[])
+{
+  apr_allocator_t *allocer;
+  apr_pool_t* pool;
+  servernamestr = "eendracht.cs.vu.nl:8081";
+  CHECK(apr_allocator_create(&allocer));
+  CHECK(apr_pool_create_ex(&pool, NULL, NULL, allocer));
+  GlobuleEvent evt(pool);
+  adapt(evt);
+  apr_pool_destroy(pool);
+  apr_allocator_destroy(allocer);
+  fprintf(stderr,"done.\n");
+  exit(0);
+}
+#endif
+`

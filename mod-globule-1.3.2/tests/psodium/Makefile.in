@@ -1,0 +1,113 @@
+#
+# Main Makefile for Globule tests, generated from Makefile.in
+#
+
+TESTSCRIPT:=t/TEST.PL
+GENTESTSCRIPT:=t/TEST
+
+FLOODCOMBFILESET:=../floodA-fileset2.txt
+
+SUBDIRS:=directives master slave proxy
+
+all::
+	@echo "Run 'make test' to run the tests. Only works with Apache test framework installed"
+
+test:: directives master slave combined floodcomb
+
+directives:: $(GENTESTSCRIPT) 
+	@(cd $@; $(MAKE) TESTLOGFILE=/dev/null; ) 
+
+master:: $(GENTESTSCRIPT) 
+	@(cd $@; $(MAKE) TESTLOGFILE=/dev/null; ) 
+
+slave:: $(GENTESTSCRIPT) 
+	@(cd $@; $(MAKE) TESTLOGFILE=/dev/null; ) 
+
+flood:: $(GENTESTSCRIPT) 
+	@(cd master; $(MAKE) TESTLOGFILE=/dev/null $@; )
+	@(cd slave; $(MAKE) TESTLOGFILE=/dev/null $@; )
+
+combined:: $(GENTESTSCRIPT)
+	@$(MAKE) comb-ms-A
+
+# currently broken. See proxy/comb-pms-A*.t
+# @$(MAKE) comb-pms-A
+
+comb-ms-A:: $(GENTESTSCRIPT)
+	@(cd master; $(MAKE) CONF=conf/comb-ms-A.conf PORT=8056 TESTLOGFILE=/dev/null start )
+	@(cd slave; $(MAKE) CONF=conf/comb-ms-A.conf PORT=8057 TESTLOGFILE=/dev/null start )
+	@-(cd slave; $(MAKE) TESTGROUPS=comb-ms-A PORT=8057 TESTLOGFILE=/dev/null combined)
+	@(cd slave; $(MAKE) CONF=conf/comb-ms-A.conf TESTLOGFILE=/dev/null stop)
+	@(cd master; $(MAKE) CONF=conf/comb-ms-A.conf TESTLOGFILE=/dev/null stop)
+
+comb-pms-A:: $(GENTESTSCRIPT)
+	@(cd master; $(MAKE) CONF=conf/comb-ms-A.conf PORT=8056 TESTLOGFILE=/dev/null start )
+	@(cd slave; $(MAKE) CONF=conf/comb-ms-A.conf PORT=8057 TESTLOGFILE=/dev/null start )
+	@(cd proxy; $(MAKE) CONF=conf/comb-pms-A.conf PORT=8055 TESTLOGFILE=/dev/null start )
+	@-(cd proxy; $(MAKE) TESTGROUPS=comb-pms-A PORT=8055 TESTLOGFILE=/dev/null combined)
+	@(cd proxy; $(MAKE) CONF=conf/comb-pms-A.conf TESTLOGFILE=/dev/null stop)
+	@(cd slave; $(MAKE) CONF=conf/comb-ms-A.conf TESTLOGFILE=/dev/null stop)
+	@(cd master; $(MAKE) CONF=conf/comb-ms-A.conf TESTLOGFILE=/dev/null stop)
+
+floodcomb::
+	$(MAKE) FLOODCOMBRUNMODE=floodrun floodcombdo
+
+floodcombendless::
+	$(MAKE) FLOODCOMBRUNMODE=floodrunendless floodcombdo
+
+floodcombdo:: $(GENTESTSCRIPT)
+	@echo "# Generating config files for floodcomb test in proxy"
+	@(MODDIR=`@APXS@ -q LIBEXECDIR | sed -e 's/\//\\\\\//g'`; cd proxy/conf ; sed -e "s/\@MODDIR\@/$$MODDIR/g" floodcombA.conf.in.templ > floodcombA.conf.in )
+	@echo "# Generating data for test in master"
+	@(cd master; $(MAKE) FLOODFILESET=$(FLOODCOMBFILESET) floodfilesgen )
+	@echo "# Generating load definition in proxy"
+	@(cd proxy; $(MAKE) FLOODFILESET=$(FLOODCOMBFILESET) PORT=8056 floodloadgen )
+	@echo "# Starting master server for floodcomb"
+	@(cd master; $(MAKE) CONF=conf/floodcombA.conf PORT=8056 TESTLOGFILE=/dev/null start )
+	@echo "# Starting slave server for floodcomb"
+	@(cd slave; $(MAKE) CONF=conf/floodcombA.conf PORT=8057 TESTLOGFILE=/dev/null start )
+	@echo "# Starting proxy server for floodcomb"
+	@(cd proxy; $(MAKE) CONF=conf/floodcombA.conf PORT=8055 TESTLOGFILE=/dev/null start )
+	@echo "# Sleeping so master will start redirecting"
+	sleep 60
+	@echo "# Running floodcomb tests in proxy"
+	@-(cd proxy; $(MAKE) TESTGROUPS=floodcombA PORT=8055 LOADER=wget HTTP_PROXY=http://localhost:8055 TESTLOGFILE=/dev/null $(FLOODCOMBRUNMODE))
+	@echo "# Stopping proxy server for floodcomb"
+	@(cd proxy; $(MAKE) CONF=conf/floodcombA.conf TESTLOGFILE=/dev/null stop)
+	@echo "# Stopping slave server for floodcomb"
+	@(cd slave; $(MAKE) CONF=conf/floodcombA.conf TESTLOGFILE=/dev/null stop)
+	@echo "# Stopping master server for floodcomb"
+	@(cd master; $(MAKE) CONF=conf/floodcombA.conf TESTLOGFILE=/dev/null stop)
+	@echo "# Deleting load definition in slave"
+	@(cd slave; $(MAKE) FLOODFILESET=$(FLOODCOMBFILESET) floodloaddel )
+	@echo "# Deleting generated files in master"
+	@(cd master; $(MAKE) FLOODFILESET=$(FLOODCOMBFILESET) floodfilesdel )
+
+
+install::
+
+
+clean:: $(GENTESTSCRIPT) 
+	for dir in $(SUBDIRS); do  \
+		(cd $$dir; $(MAKE) clean; ) \
+	done
+	-rm $(GENTESTSCRIPT)
+	-rmdir */logs
+	-rmdir slave/htdocs
+
+# -I.. is necessary for the test script to find the code in "GlobuleTest"
+$(GENTESTSCRIPT):: $(TESTSCRIPT)
+	echo "#!@PERL@ -I.." > $(GENTESTSCRIPT)
+	echo "#" >> $(GENTESTSCRIPT)
+	echo "# GENERATED FILE, DO NOT EDIT!" >> $(GENTESTSCRIPT)
+	echo "#" >> $(GENTESTSCRIPT)
+	echo '%Apache::TestConfig::Argv = qw(apxs @APXS@);' >> $(GENTESTSCRIPT)
+	cat $(TESTSCRIPT) >> $(GENTESTSCRIPT)
+	chmod +x $(GENTESTSCRIPT)
+
+# Autohell will call this Makefile with maintainer-clean and other targets,
+# make sure they're handled.
+%: force
+	@echo "tests: Ignored make of unknown target"
+
+force: ;

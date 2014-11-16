@@ -1,0 +1,5 @@
+# Error is: File has bad syntax
+PsodiumMasterVersionsFile conf/versions-badsyntax.txt
+
+# Must have this too, as there is no default keys file
+PsodiumMasterSlaveKeys conf/slavekeys-goodsyntax.txt

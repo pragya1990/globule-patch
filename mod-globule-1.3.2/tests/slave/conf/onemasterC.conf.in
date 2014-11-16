@@ -1,0 +1,10 @@
+#  Test: slave is dedicated slave, importing '/'
+<Location />
+	Import REPLICA http://localhost:8056/export password1
+</Location>
+
+# Patch to prevent premature testing: with the slave importing / there are
+# no non-Globulized docs. This makes /index.html one.
+<Files index.html>
+  Export OFF
+</Files>

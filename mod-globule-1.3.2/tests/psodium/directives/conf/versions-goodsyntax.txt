@@ -1,0 +1,3 @@
+EXPORTPATH /dummy/
+-----BEGIN VERSIONS-----
+-----END VERSIONS-----

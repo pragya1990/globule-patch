@@ -1,0 +1,4 @@
+PsodiumSlaveID localhost:1234
+
+# Must have this too, as there is no default key file
+PsodiumSlavePrivateKey conf/slave1-goodsyntax.keypair
